@@ -233,9 +233,9 @@ def train_grpo():
     NUM_GENERATIONS = 4 # Optimized for T4 speed
     training_config = GRPOConfig(
         output_dir="/tmp/vergil_grpo_output",
-        num_train_epochs=3,
+        max_steps=50,                        # Stop at 50 steps as requested
         per_device_train_batch_size=2,
-        gradient_accumulation_steps=8,
+        gradient_accumulation_steps=8,       # Effective batch = 16
         learning_rate=2e-5,
         max_completion_length=512,
         num_generations=NUM_GENERATIONS,
@@ -249,7 +249,7 @@ def train_grpo():
         model=model,
         args=training_config,
         train_dataset=Dataset.from_dict({"prompt": training_prompts}),
-        reward_funcs=[lambda p, c, **kw: vergil_reward_function(p, c, env=env, pomdp=pomdp, num_generations=NUM_GENERATIONS)],
+        reward_funcs=[lambda prompts, completions, **kwargs: vergil_reward_function(prompts, completions, env=env, pomdp=pomdp, num_generations=NUM_GENERATIONS)],
         processing_class=tokenizer,
     )
 
