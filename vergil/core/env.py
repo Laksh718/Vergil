@@ -362,9 +362,20 @@ class VERGILEnv(gym.Env):
         )
 
         # ── Step 9: CDG satisfiability evaluation ─────────────────────────
+        prev_sat = self._state.satisfiability_score
         sat_result = self.cdg.evaluate_satisfiability(
             current_time=new_time,
             available_hours=self._state.available_hours_next_48h
+        )
+
+        # Apply potential-based reward shaping: R' = R + γ×Φ(s') - Φ(s)
+        # Φ(s) = CDG satisfiability score — provides dense intermediate signal
+        # aligned with sparse terminal reward. Policy-invariant by construction.
+        reward_components.total = self.reward_fn.compute_shaped_reward(
+            base_reward=reward_components.total,
+            prev_satisfiability=prev_sat,
+            new_satisfiability=sat_result.satisfiability_score,
+            gamma=0.99,
         )
 
         # ── Step 10: Terminal condition check ─────────────────────────────

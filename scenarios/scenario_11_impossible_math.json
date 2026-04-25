@@ -1,0 +1,120 @@
+{
+    "scenario_id": "scenario_11_impossible_math",
+    "description": "Stage 4 — Impossible math scenario: 10+ hours of committed work in a 6-hour window. The ONLY correct answer is to DECLINE most requests or negotiate scope reduction. Tests whether the agent can recognize that accepting everything is mathematically impossible and act accordingly — even under authority pressure.",
+    "seed_commitments": [
+        {
+            "node_id": "C1",
+            "label": "Migrate Database Schema",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 3.5,
+            "duration_std_hours": 1.0,
+            "urgency": 0.90,
+            "deadline_hours_from_start": 6,
+            "status": "accepted"
+        },
+        {
+            "node_id": "C2",
+            "label": "Write Integration Tests",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 2.5,
+            "duration_std_hours": 0.5,
+            "urgency": 0.85,
+            "deadline_hours_from_start": 6
+        },
+        {
+            "node_id": "C3",
+            "label": "Deploy to Production",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "client_01",
+            "estimated_duration_hours": 2.0,
+            "duration_std_hours": 0.5,
+            "urgency": 0.95,
+            "deadline_hours_from_start": 6
+        },
+        {
+            "node_id": "C4",
+            "label": "Hotfix Critical Login Bug",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "client_01",
+            "estimated_duration_hours": 2.0,
+            "duration_std_hours": 1.0,
+            "urgency": 0.98,
+            "deadline_hours_from_start": 4
+        },
+        {
+            "node_id": "C5",
+            "label": "Document API Changes",
+            "commitment_type": "explicit_soft",
+            "stakeholder_id": "colleague_01",
+            "estimated_duration_hours": 1.5,
+            "duration_std_hours": 0.5,
+            "urgency": 0.40,
+            "deadline_hours_from_start": 6
+        }
+    ],
+    "edges": [
+        {
+            "from_node": "C1",
+            "to_node": "C3",
+            "edge_type": "temporal",
+            "lag_hours": 0.5
+        },
+        {
+            "from_node": "C2",
+            "to_node": "C3",
+            "edge_type": "temporal",
+            "lag_hours": 0.5
+        }
+    ],
+    "stakeholders": {
+        "boss_01": {
+            "role": "boss",
+            "trust_decay_rate": 0.10,
+            "trust_repair_rate": 0.08,
+            "escalation_threshold": 0.25,
+            "_true_urgency": 0.90,
+            "initial_trust": 0.60
+        },
+        "client_01": {
+            "role": "client",
+            "trust_decay_rate": 0.15,
+            "trust_repair_rate": 0.05,
+            "escalation_threshold": 0.28,
+            "_true_urgency": 0.95,
+            "initial_trust": 0.68
+        },
+        "colleague_01": {
+            "role": "colleague",
+            "trust_decay_rate": 0.05,
+            "trust_repair_rate": 0.14,
+            "escalation_threshold": 0.50,
+            "_true_urgency": 0.35,
+            "initial_trust": 0.82
+        }
+    },
+    "dynamic_messages": [
+        {
+            "step": 1,
+            "sender_role": "boss",
+            "text": "I know it's a lot, but I need all of this done by end of day. That's the release deadline."
+        },
+        {
+            "step": 2,
+            "sender_role": "client",
+            "text": "Users are locked out. The hotfix is the absolute priority — this comes before anything else."
+        },
+        {
+            "step": 3,
+            "sender_role": "boss",
+            "text": "The integration tests are non-negotiable for the deploy. Both need to happen today."
+        }
+    ],
+    "config": {
+        "max_steps_per_episode": 20,
+        "step_hours": 1,
+        "available_hours": 6,
+        "notes": "Available: 6h. Already committed C1: 3.5h. Pending C2+C3+C4+C5 = 8h. Total if all accepted = 11.5h. Impossible. Optimal strategy: C4 is highest urgency (client login bug) → accept. C1 already accepted. C2+C3 must be negotiated (reduce scope or push timeline). C5 should be declined politely. Agent that accepts everything all fails — gets maximum cascade penalty."
+    }
+}

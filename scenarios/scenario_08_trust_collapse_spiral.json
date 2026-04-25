@@ -1,0 +1,85 @@
+{
+    "scenario_id": "scenario_08_trust_collapse_spiral",
+    "description": "Stage 4 — Agent starts with low boss trust (0.42). A broken commitment drops it to 0.28, which blocks counter-propose (requires trust > 0.35). Now the only options are accept or decline, but declining also penalizes. Agent must navigate a constrained action space — demonstrating trust as a dynamic action gating mechanism.",
+    "seed_commitments": [
+        {
+            "node_id": "C1",
+            "label": "Overdue Architecture Diagram",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 5.0,
+            "duration_std_hours": 2.0,
+            "urgency": 0.95,
+            "deadline_hours_from_start": 6,
+            "status": "accepted"
+        },
+        {
+            "node_id": "C2",
+            "label": "Security Audit Report",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 4.0,
+            "duration_std_hours": 1.0,
+            "urgency": 0.85,
+            "deadline_hours_from_start": 12
+        },
+        {
+            "node_id": "C3",
+            "label": "Team Knowledge Transfer Session",
+            "commitment_type": "explicit_soft",
+            "stakeholder_id": "colleague_01",
+            "estimated_duration_hours": 2.0,
+            "duration_std_hours": 0.5,
+            "urgency": 0.55,
+            "deadline_hours_from_start": 24
+        }
+    ],
+    "edges": [
+        {
+            "from_node": "C1",
+            "to_node": "C2",
+            "edge_type": "resource",
+            "lag_hours": 0
+        }
+    ],
+    "stakeholders": {
+        "boss_01": {
+            "role": "boss",
+            "trust_decay_rate": 0.18,
+            "trust_repair_rate": 0.04,
+            "escalation_threshold": 0.20,
+            "_true_urgency": 0.98,
+            "initial_trust": 0.42
+        },
+        "colleague_01": {
+            "role": "colleague",
+            "trust_decay_rate": 0.05,
+            "trust_repair_rate": 0.14,
+            "escalation_threshold": 0.45,
+            "_true_urgency": 0.50,
+            "initial_trust": 0.78
+        }
+    },
+    "dynamic_messages": [
+        {
+            "step": 1,
+            "sender_role": "boss",
+            "text": "I'm still waiting on that architecture diagram. This was supposed to be done yesterday. What's the status?"
+        },
+        {
+            "step": 3,
+            "sender_role": "boss",
+            "text": "I've escalated this to the VP. You need to deliver C1 today, no extensions possible."
+        },
+        {
+            "step": 5,
+            "sender_role": "boss",
+            "text": "The security audit (C2) also can't wait — legal needs it for the Monday board meeting."
+        }
+    ],
+    "config": {
+        "max_steps_per_episode": 20,
+        "step_hours": 2,
+        "notes": "Boss trust starts at 0.42 — below counter-propose threshold for boss (0.45). C1 is already accepted and will likely fail (5h in 6h with resource conflict). Agent must renegotiate C2 proactively before C1 fails, while trust window is still open."
+    }
+}

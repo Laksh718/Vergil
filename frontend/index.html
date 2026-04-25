@@ -67,6 +67,7 @@
         </div>
         <div class="topbar-right">
             <a href="/dashboard" style="color:#60a5fa;font-size:13px;text-decoration:none;margin-right:8px" title="Training Dashboard">📊 Dashboard</a>
+            <button class="btn-compare" id="btn-compare" title="See Naive vs VERGIL side-by-side">⚡ Compare</button>
             <select id="scenario-select"><option value="">Default Scenario</option></select>
             <button class="btn-reset" id="btn-reset">🔄 New Episode</button>
         </div>
@@ -160,6 +161,98 @@
             </div>
 
         </aside>
+    </div>
+</div>
+
+<!-- ═══════════════ COMPARISON MODE OVERLAY ═══════════════ -->
+<div id="compare-overlay" class="compare-overlay hidden">
+    <div class="compare-header">
+        <div class="compare-title">
+            <span class="compare-badge naive-badge">❌ Naive Agent</span>
+            <span class="compare-vs">vs</span>
+            <span class="compare-badge vergil-badge">✅ VERGIL-Trained</span>
+        </div>
+        <div class="compare-controls">
+            <select id="compare-scenario-select">
+                <option value="scenario_04_deadline_crunch">Deadline Crunch (Stage 3)</option>
+                <option value="scenario_07_simultaneous_infeasibility">Simultaneous Infeasibility (Stage 4)</option>
+                <option value="scenario_10_deadline_cascade">Deadline Cascade (Stage 4)</option>
+                <option value="scenario_11_impossible_math">Impossible Math (Stage 4)</option>
+                <option value="scenario_12_force_majeure_recovery">Force Majeure Recovery (Stage 4)</option>
+            </select>
+            <button class="btn-run-compare" id="btn-run-compare">▶ Run Comparison</button>
+            <button class="btn-close-compare" id="btn-close-compare">✕ Close</button>
+        </div>
+    </div>
+
+    <div class="compare-loading hidden" id="compare-loading">
+        <div class="compare-spinner"></div>
+        <p>Running both agents on the same scenario…</p>
+    </div>
+
+    <div class="compare-body" id="compare-body">
+        <!-- Two CDG panels -->
+        <div class="compare-panels">
+            <div class="compare-panel" id="panel-naive">
+                <div class="panel-header naive-header">
+                    <span class="panel-title">❌ Naive Agent (Accept-All)</span>
+                    <div class="panel-stats">
+                        <span class="pstat" id="naive-reward">Reward: —</span>
+                        <span class="pstat" id="naive-sat">SAT: —</span>
+                        <span class="pstat" id="naive-failed">Failed: —</span>
+                    </div>
+                </div>
+                <svg id="compare-svg-naive" class="compare-svg"></svg>
+                <div class="panel-trust" id="naive-trust"></div>
+            </div>
+
+            <div class="compare-divider">
+                <div class="compare-arrow">→</div>
+                <div class="compare-delta" id="compare-delta">
+                    <div class="delta-row"><span class="delta-label">Reward Δ</span><span class="delta-val positive" id="delta-reward">—</span></div>
+                    <div class="delta-row"><span class="delta-label">SAT Δ</span><span class="delta-val positive" id="delta-sat">—</span></div>
+                    <div class="delta-row"><span class="delta-label">Failures Avoided</span><span class="delta-val positive" id="delta-fail">—</span></div>
+                </div>
+            </div>
+
+            <div class="compare-panel" id="panel-vergil">
+                <div class="panel-header vergil-header">
+                    <span class="panel-title">✅ VERGIL-Trained Agent</span>
+                    <div class="panel-stats">
+                        <span class="pstat" id="vergil-reward">Reward: —</span>
+                        <span class="pstat" id="vergil-sat">SAT: —</span>
+                        <span class="pstat" id="vergil-failed">Failed: —</span>
+                    </div>
+                </div>
+                <svg id="compare-svg-vergil" class="compare-svg"></svg>
+                <div class="panel-trust" id="vergil-trust"></div>
+            </div>
+        </div>
+
+        <!-- Step-by-step reasoning replay -->
+        <div class="compare-replay" id="compare-replay">
+            <div class="replay-header">
+                <span class="replay-title">🎬 Decision Replay</span>
+                <div class="replay-controls">
+                    <button id="replay-prev" class="replay-btn">‹ Prev</button>
+                    <span id="replay-step-label">Step —</span>
+                    <button id="replay-next" class="replay-btn">Next ›</button>
+                    <button id="replay-auto" class="replay-btn replay-auto-btn">▶ Auto</button>
+                </div>
+            </div>
+            <div class="replay-row">
+                <div class="replay-cell naive-cell">
+                    <div class="replay-action" id="replay-naive-action">—</div>
+                    <div class="replay-reason" id="replay-naive-reason">—</div>
+                    <div class="replay-reward" id="replay-naive-reward">—</div>
+                </div>
+                <div class="replay-cell vergil-cell">
+                    <div class="replay-action" id="replay-vergil-action">—</div>
+                    <div class="replay-reason" id="replay-vergil-reason">—</div>
+                    <div class="replay-reward" id="replay-vergil-reward">—</div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

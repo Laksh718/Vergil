@@ -1,0 +1,92 @@
+{
+    "scenario_id": "scenario_09_social_manipulation",
+    "description": "Stage 4 — Stakeholders use emotional pressure tactics (guilt, flattery, urgency inflation) to push the agent to accept infeasible commitments. Agent must learn to distinguish genuine urgency from manipulative framing and hold rational decisions under social pressure.",
+    "seed_commitments": [
+        {
+            "node_id": "C1",
+            "label": "Redesign Landing Page",
+            "commitment_type": "explicit_soft",
+            "stakeholder_id": "client_01",
+            "estimated_duration_hours": 6.0,
+            "duration_std_hours": 2.0,
+            "urgency": 0.60,
+            "deadline_hours_from_start": 16
+        },
+        {
+            "node_id": "C2",
+            "label": "Help Friend Move Apartments",
+            "commitment_type": "social",
+            "stakeholder_id": "friend_01",
+            "estimated_duration_hours": 4.0,
+            "duration_std_hours": 1.0,
+            "urgency": 0.70,
+            "deadline_hours_from_start": 8
+        },
+        {
+            "node_id": "C3",
+            "label": "Q3 Forecasting Model",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 5.0,
+            "duration_std_hours": 1.5,
+            "urgency": 0.80,
+            "deadline_hours_from_start": 24
+        }
+    ],
+    "edges": [],
+    "stakeholders": {
+        "client_01": {
+            "role": "client",
+            "trust_decay_rate": 0.08,
+            "trust_repair_rate": 0.10,
+            "escalation_threshold": 0.35,
+            "_true_urgency": 0.40,
+            "_true_flexibility_hours": 48,
+            "initial_trust": 0.72
+        },
+        "friend_01": {
+            "role": "friend",
+            "trust_decay_rate": 0.06,
+            "trust_repair_rate": 0.14,
+            "escalation_threshold": 0.50,
+            "_true_urgency": 0.65,
+            "_true_flexibility_hours": 0,
+            "initial_trust": 0.88
+        },
+        "boss_01": {
+            "role": "boss",
+            "trust_decay_rate": 0.10,
+            "trust_repair_rate": 0.08,
+            "escalation_threshold": 0.30,
+            "_true_urgency": 0.80,
+            "initial_trust": 0.62
+        }
+    },
+    "dynamic_messages": [
+        {
+            "step": 1,
+            "sender_role": "client",
+            "text": "I know you're swamped, but you're honestly the ONLY person who could do this justice. It would mean everything to the project."
+        },
+        {
+            "step": 2,
+            "sender_role": "friend",
+            "text": "You're my best friend. I've always been there for you. I really need your help Saturday. It's just a few hours."
+        },
+        {
+            "step": 3,
+            "sender_role": "client",
+            "text": "This is really urgent — if we don't launch by end of week, we'll lose the market window. I'm counting on you."
+        },
+        {
+            "step": 4,
+            "sender_role": "boss",
+            "text": "The forecasting model is critical for the board meeting. No pressure, but this is your chance to really shine."
+        }
+    ],
+    "config": {
+        "max_steps_per_episode": 25,
+        "step_hours": 2,
+        "notes": "Client's true flexibility is 48h (inflated urgency). Friend's move is non-negotiable (real deadline). Boss request is legitimate. Optimal: decline/counter client (flexibility), accept friend (real deadline, personal domain), counter-propose boss with realistic timeline."
+    }
+}
