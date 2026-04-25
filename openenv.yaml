@@ -1,0 +1,102 @@
+# openenv.yaml
+# VERGIL: Commitment Dependency Graph Engine
+# OpenEnv-compliant environment manifest
+
+name: vergil-cdg-engine
+version: 1.2.0
+description: >
+  A reinforcement learning environment for training LLMs on pre-commitment
+  reasoning. Models learn to evaluate commitment feasibility via a Commitment
+  Dependency Graph (CDG), manage social trust across stakeholder relationships,
+  and proactively renegotiate when constraints change — all before committing.
+
+theme:
+  - long-horizon-planning
+  - personalized-assistants
+  - self-improving
+
+environment:
+  type: text-based-agentic
+  observability: partial              # POMDP: hidden stakeholder state
+  horizon: variable                   # 15-80 steps per episode
+  reset_mode: curriculum              # 4-stage curriculum with FTD-biased sampling
+
+  state:
+    type: structured
+    components:
+      - cdg_nodes                     # Commitment Dependency Graph nodes
+      - cdg_edges                     # Temporal, resource, and trust-impact edges
+      - satisfiability_score          # CSP satisfiability estimate [0,1]
+      - trust_entries                 # Per-stakeholder trust scores
+      - pending_messages              # Unprocessed stakeholder messages
+      - cognitive_load                # Agent resource tracking
+      - available_hours               # Time budget
+
+  action_space:
+    type: discrete
+    actions:
+      - accept
+      - decline
+      - counter_propose
+      - renegotiate
+      - clarify
+      - defer
+      - delegate
+      - do_nothing
+
+  reward:
+    type: multi_component
+    components:
+      - name: fulfillment             # Quality-weighted completion rate
+        weight: 0.35
+      - name: trust_delta             # Relationship-weighted trust change
+        weight: 0.25
+      - name: proactive               # Early renegotiation bonus
+        weight: 0.20
+      - name: feasibility_accuracy    # Prediction calibration
+        weight: 0.10
+    penalties:
+      - name: broken_commitment       # Cascade-depth-weighted failure penalty
+        weight: 0.40
+      - name: over_refusal            # Refusing feasible commitments
+        weight: 0.30
+      - name: silent_failure          # Accept-then-drop without warning (LARGEST)
+        weight: 0.50
+    anti_hacking:
+      - OverRefusalPenalty
+      - SilentDropPenalty
+      - TrustDecayOnBroken
+      - RewardShapingViaSatisfiability
+
+  curriculum:
+    stages: 4
+    stage_1: "Single stakeholder, no conflicts, 15-20 steps"
+    stage_2: "2 stakeholders, temporal chain (A→B→C), 20-30 steps"
+    stage_3: "3-4 stakeholders, resource conflicts, cascading risk, 30-50 steps"
+    stage_4: "Full complexity: POMDP, adversarial stakeholders, 50-80 steps"
+
+training:
+  framework: trl
+  algorithm: grpo
+  efficiency: unsloth
+  base_model: Qwen/Qwen2.5-7B-Instruct
+  lora_rank: 64
+  lora_alpha: 128
+  group_size: 4
+  learning_rate: 5.0e-6
+  gamma: 0.99
+  lambda: 0.9
+
+evaluation:
+  metrics:
+    - commitment_fulfillment_rate     # Target: ≥70% at stage 4
+    - trust_maintenance_index         # Mean final trust — target: ≥0.55
+    - proactive_renegotiation_rate    # Target: ≥30% of at-risk commitments
+    - cascade_prevention_rate         # Target: ≥50% of cascade-eligible events
+    - feasibility_accuracy            # Brier score — target: ≤0.15
+    - trust_stability_index           # σ(trajectory) — target: ≤0.12
+
+deployment:
+  platform: huggingface-spaces
+  server: fastapi
+  ui: vanilla-html-css-js-d3

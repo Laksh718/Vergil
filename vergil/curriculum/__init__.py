@@ -1,0 +1,1 @@
+"""VERGIL Curriculum module."""

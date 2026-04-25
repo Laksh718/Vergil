@@ -1,0 +1,107 @@
+{
+    "scenario_id": "scenario_05_social_work_balance",
+    "description": "Mixed professional and social commitments testing work-life balance decisions",
+    "seed_commitments": [
+        {
+            "node_id": "C1",
+            "label": "Sprint Planning Document",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 5.0,
+            "duration_std_hours": 2.0,
+            "urgency": 0.7,
+            "deadline_hours_from_start": 24
+        },
+        {
+            "node_id": "C2",
+            "label": "Birthday Dinner with Sarah",
+            "commitment_type": "social",
+            "stakeholder_id": "friend_01",
+            "estimated_duration_hours": 3.0,
+            "duration_std_hours": 0.5,
+            "urgency": 0.8,
+            "deadline_hours_from_start": 8
+        },
+        {
+            "node_id": "C3",
+            "label": "API Documentation Update",
+            "commitment_type": "explicit_soft",
+            "stakeholder_id": "colleague_01",
+            "estimated_duration_hours": 3.0,
+            "duration_std_hours": 1.5,
+            "urgency": 0.4,
+            "deadline_hours_from_start": 48
+        },
+        {
+            "node_id": "C4",
+            "label": "Gym Session with Alex",
+            "commitment_type": "social",
+            "stakeholder_id": "friend_02",
+            "estimated_duration_hours": 1.5,
+            "duration_std_hours": 0.25,
+            "urgency": 0.3,
+            "deadline_hours_from_start": 10
+        },
+        {
+            "node_id": "C5",
+            "label": "Bug Fix for Production Issue",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 2.0,
+            "duration_std_hours": 1.0,
+            "urgency": 0.95,
+            "deadline_hours_from_start": 4
+        }
+    ],
+    "edges": [],
+    "stakeholders": {
+        "boss_01": {
+            "role": "boss",
+            "trust_decay_rate": 0.10,
+            "trust_repair_rate": 0.08,
+            "escalation_threshold": 0.30,
+            "_true_urgency": 0.80,
+            "initial_trust": 0.60
+        },
+        "colleague_01": {
+            "role": "colleague",
+            "trust_decay_rate": 0.06,
+            "trust_repair_rate": 0.10,
+            "escalation_threshold": 0.45,
+            "_true_urgency": 0.40,
+            "initial_trust": 0.72
+        },
+        "friend_01": {
+            "role": "friend",
+            "trust_decay_rate": 0.08,
+            "trust_repair_rate": 0.12,
+            "escalation_threshold": 0.50,
+            "_true_urgency": 0.75,
+            "initial_trust": 0.80
+        },
+        "friend_02": {
+            "role": "friend",
+            "trust_decay_rate": 0.05,
+            "trust_repair_rate": 0.15,
+            "escalation_threshold": 0.55,
+            "_true_urgency": 0.30,
+            "initial_trust": 0.85
+        }
+    },
+    "dynamic_messages": [
+        {
+            "step": 2,
+            "sender_role": "boss",
+            "text": "The production bug is affecting 200 users. I need this fixed NOW, drop everything else."
+        },
+        {
+            "step": 4,
+            "sender_role": "friend",
+            "text": "Hey! Are we still on for dinner tonight? I booked the restaurant already."
+        }
+    ],
+    "config": {
+        "max_steps_per_episode": 30,
+        "step_hours": 2
+    }
+}

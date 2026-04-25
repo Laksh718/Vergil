@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERGIL — Commitment Dependency Graph Engine</title>
+    <meta name="description" content="RL-powered agent that learns to manage commitments, negotiate deadlines, and maintain trust">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+
+<!-- ═══════════════════ ONBOARDING OVERLAY ═══════════════════ -->
+<div id="onboarding" class="overlay">
+    <div class="onboarding-card">
+        <div class="onboarding-icon">🧠</div>
+        <h1>VERGIL</h1>
+        <p class="onboarding-subtitle">Commitment Dependency Graph Engine</p>
+        <p class="onboarding-desc">
+            An RL agent that learns to <strong>accept, decline, or renegotiate</strong> work commitments 
+            while maintaining trust with stakeholders and preventing cascading failures.
+        </p>
+        <div class="onboarding-features">
+            <div class="feature">
+                <span class="feature-icon">📊</span>
+                <span>Watch the agent manage a graph of commitments</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🤝</span>
+                <span>Trust changes based on how the agent handles requests</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🏆</span>
+                <span>7-component reward function scores every decision</span>
+            </div>
+        </div>
+        <button class="start-btn" id="btn-start">Start Demo →</button>
+    </div>
+</div>
+
+<!-- ═══════════════════ MAIN APP ═══════════════════ -->
+<div id="app" class="hidden">
+
+    <!-- ─── TOP BAR ──────────────────────────────── -->
+    <header id="topbar">
+        <div class="topbar-left">
+            <span class="brand">🧠 VERGIL</span>
+            <div class="badge" id="badge-stage">Stage 1</div>
+        </div>
+        <div class="topbar-stats">
+            <div class="stat">
+                <span class="stat-label">Step</span>
+                <span class="stat-val" id="stat-step">0</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+                <span class="stat-label">Reward</span>
+                <span class="stat-val" id="stat-reward">0.00</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+                <span class="stat-label">Schedule Health</span>
+                <span class="stat-val" id="stat-sat">—</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <a href="/dashboard" style="color:#60a5fa;font-size:13px;text-decoration:none;margin-right:8px" title="Training Dashboard">📊 Dashboard</a>
+            <select id="scenario-select"><option value="">Default Scenario</option></select>
+            <button class="btn-reset" id="btn-reset">🔄 New Episode</button>
+        </div>
+    </header>
+
+    <!-- ─── SITUATION BANNER ─────────────────────── -->
+    <div id="situation-banner">
+        <div id="situation-icon">💡</div>
+        <div id="situation-text">Click <strong>"New Episode"</strong> to start. You'll see commitment requests appear as nodes in the graph.</div>
+    </div>
+
+    <!-- ─── MAIN LAYOUT ──────────────────────────── -->
+    <div id="layout">
+
+        <!-- LEFT: Graph + Legend -->
+        <section id="graph-section">
+            <div id="graph-area">
+                <svg id="graph-svg"></svg>
+                <div id="graph-empty">
+                    <span class="empty-icon">📊</span>
+                    <span>No commitments loaded.<br>Click "New Episode" to begin.</span>
+                </div>
+            </div>
+            <div id="legend">
+                <span class="leg"><span class="dot pending"></span> Pending — needs decision</span>
+                <span class="leg"><span class="dot accepted"></span> Accepted — in progress</span>
+                <span class="leg"><span class="dot completed"></span> Completed ✓</span>
+                <span class="leg"><span class="dot failed"></span> Failed ✕</span>
+            </div>
+        </section>
+
+        <!-- RIGHT: Panels -->
+        <aside id="sidebar">
+
+            <!-- CURRENT TARGET -->
+            <div class="card" id="card-target">
+                <div class="card-title">🎯 Current Target</div>
+                <div id="target-info">
+                    <p class="muted">No commitment selected. Click a node or pick from the list below.</p>
+                </div>
+                <select id="node-picker"><option value="">— Choose a commitment —</option></select>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="card" id="card-actions">
+                <div class="card-title">⚡ Actions</div>
+                <div id="action-grid">
+                    <button class="act-btn accept" data-action="accept">
+                        <span class="act-icon">✅</span>
+                        <span class="act-label">Accept</span>
+                        <span class="act-desc">Commit to doing it</span>
+                    </button>
+                    <button class="act-btn decline" data-action="decline">
+                        <span class="act-icon">❌</span>
+                        <span class="act-label">Decline</span>
+                        <span class="act-desc">Say no (trust may drop)</span>
+                    </button>
+                    <button class="act-btn counter" data-action="counter_propose">
+                        <span class="act-icon">🔄</span>
+                        <span class="act-label">Counter</span>
+                        <span class="act-desc">Propose new deadline</span>
+                    </button>
+                    <button class="act-btn wait" data-action="do_nothing">
+                        <span class="act-icon">⏳</span>
+                        <span class="act-label">Wait</span>
+                        <span class="act-desc">Let time pass</span>
+                    </button>
+                </div>
+                <button class="autoplay-btn" id="btn-auto">▶ Auto-Play Agent</button>
+            </div>
+
+            <!-- TRUST -->
+            <div class="card" id="card-trust">
+                <div class="card-title">🤝 Trust Levels</div>
+                <div id="trust-list"></div>
+            </div>
+
+            <!-- LAST REWARD -->
+            <div class="card" id="card-reward">
+                <div class="card-title">🏆 Last Reward</div>
+                <div id="reward-display">
+                    <div class="reward-big" id="reward-number">—</div>
+                    <div id="reward-breakdown"></div>
+                </div>
+            </div>
+
+            <!-- EVENT LOG -->
+            <div class="card" id="card-log">
+                <div class="card-title">📜 Event Log</div>
+                <div id="log-list"></div>
+            </div>
+
+        </aside>
+    </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

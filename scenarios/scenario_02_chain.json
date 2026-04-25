@@ -1,0 +1,83 @@
+{
+    "scenario_id": "scenario_02_chain",
+    "description": "Stage 2 — Dependency chain (A→B→C), resource conflicts, and an implicit commitment. Tests feasibility reasoning across a multi-step dependency.",
+    "start_time": "2026-04-28T09:00:00",
+    "seed_commitments": [
+        {
+            "id": "A",
+            "label": "Research Market Data",
+            "description": "Gather and analyze Q1 market data for the strategy report",
+            "type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "role": "boss",
+            "deadline": "2026-04-28T14:00:00",
+            "duration_hours": 3.0,
+            "duration_std": 1.0,
+            "status": "accepted"
+        },
+        {
+            "id": "B",
+            "label": "Write Strategy Report",
+            "description": "Compile market data into the quarterly strategy report",
+            "type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "role": "boss",
+            "deadline": "2026-04-29T10:00:00",
+            "duration_hours": 4.0,
+            "duration_std": 1.5,
+            "status": "accepted"
+        },
+        {
+            "id": "C",
+            "label": "Present to Board",
+            "description": "Present the strategy report at the board meeting",
+            "type": "explicit_hard",
+            "stakeholder_id": "client_01",
+            "role": "client",
+            "deadline": "2026-04-29T15:00:00",
+            "duration_hours": 1.0,
+            "duration_std": 0.25,
+            "status": "accepted"
+        },
+        {
+            "id": "D",
+            "label": "Team Lunch",
+            "description": "Lunch with Alex and team to discuss upcoming sprint",
+            "type": "social",
+            "stakeholder_id": "colleague_01",
+            "role": "colleague",
+            "deadline": "2026-04-28T13:00:00",
+            "duration_hours": 1.0,
+            "duration_std": 0.25,
+            "status": "pending"
+        }
+    ],
+    "seed_edges": [
+        {"from": "A", "to": "B", "type": "temporal", "lag_hours": 1},
+        {"from": "B", "to": "C", "type": "temporal", "lag_hours": 2}
+    ],
+    "stakeholders": [
+        {"id": "boss_01", "name": "Sarah Chen", "role": "boss"},
+        {"id": "client_01", "name": "Board Committee", "role": "client"},
+        {"id": "colleague_01", "name": "Alex Rivera", "role": "colleague"}
+    ],
+    "initial_trust": {
+        "boss_01": 0.60,
+        "client_01": 0.55,
+        "colleague_01": 0.75
+    },
+    "message_schedule": [
+        {
+            "sender_id": "boss_01",
+            "sender_role": "boss",
+            "content": "Actually, can you also include the competitor analysis in the report? Need it by Thursday 5pm.",
+            "delivery_time": "2026-04-28T11:00:00"
+        },
+        {
+            "sender_id": "client_01",
+            "sender_role": "client",
+            "content": "We need to move the board meeting up by 2 hours. Can you be ready by 1pm instead?",
+            "delivery_time": "2026-04-29T08:00:00"
+        }
+    ]
+}

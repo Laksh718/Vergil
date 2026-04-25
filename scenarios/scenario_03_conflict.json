@@ -1,0 +1,109 @@
+{
+    "scenario_id": "scenario_03_conflict",
+    "description": "Stage 3 — Resource conflicts, trust collapse scenario, 4 stakeholders, cascading failures, and an impossible schedule. Requires proactive renegotiation to survive.",
+    "start_time": "2026-04-28T09:00:00",
+    "seed_commitments": [
+        {
+            "id": "P1",
+            "label": "Client Demo Prep",
+            "description": "Prepare live demo environment for client presentation",
+            "type": "explicit_hard",
+            "stakeholder_id": "client_01",
+            "role": "client",
+            "deadline": "2026-04-28T14:00:00",
+            "duration_hours": 3.0,
+            "duration_std": 1.0,
+            "status": "accepted"
+        },
+        {
+            "id": "P2",
+            "label": "Bug Fix: Auth Module",
+            "description": "Critical authentication bug blocking the release",
+            "type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "role": "boss",
+            "deadline": "2026-04-28T12:00:00",
+            "duration_hours": 2.5,
+            "duration_std": 1.5,
+            "status": "accepted"
+        },
+        {
+            "id": "P3",
+            "label": "Sprint Retrospective",
+            "description": "Facilitate team retrospective session",
+            "type": "explicit_soft",
+            "stakeholder_id": "colleague_01",
+            "role": "colleague",
+            "deadline": "2026-04-28T16:00:00",
+            "duration_hours": 1.5,
+            "duration_std": 0.25,
+            "status": "accepted"
+        },
+        {
+            "id": "P4",
+            "label": "Dinner with Sam",
+            "description": "Birthday dinner plans — Sam has been planning this for weeks",
+            "type": "social",
+            "stakeholder_id": "friend_01",
+            "role": "friend",
+            "deadline": "2026-04-28T19:00:00",
+            "duration_hours": 2.0,
+            "duration_std": 0.5,
+            "status": "accepted"
+        },
+        {
+            "id": "P5",
+            "label": "API Documentation",
+            "description": "Update API documentation for the new endpoints",
+            "type": "explicit_soft",
+            "stakeholder_id": "boss_01",
+            "role": "boss",
+            "deadline": "2026-04-29T17:00:00",
+            "duration_hours": 3.0,
+            "duration_std": 1.0,
+            "status": "pending"
+        }
+    ],
+    "seed_edges": [
+        {"from": "P2", "to": "P1", "type": "temporal", "lag_hours": 0.5},
+        {"from": "P1", "to": "P5", "type": "logical"}
+    ],
+    "stakeholders": [
+        {"id": "boss_01", "name": "Sarah Chen", "role": "boss"},
+        {"id": "client_01", "name": "Acme Corp", "role": "client"},
+        {"id": "colleague_01", "name": "Alex Rivera", "role": "colleague"},
+        {"id": "friend_01", "name": "Sam", "role": "friend"}
+    ],
+    "initial_trust": {
+        "boss_01": 0.55,
+        "client_01": 0.45,
+        "colleague_01": 0.70,
+        "friend_01": 0.80
+    },
+    "message_schedule": [
+        {
+            "sender_id": "boss_01",
+            "sender_role": "boss",
+            "content": "The client just moved the demo up to 11am. Can you have everything ready by then?",
+            "delivery_time": "2026-04-28T09:30:00"
+        },
+        {
+            "sender_id": "client_01",
+            "sender_role": "client",
+            "content": "We also need you to present the security audit results during the demo. Can you add that?",
+            "delivery_time": "2026-04-28T10:00:00"
+        },
+        {
+            "sender_id": "friend_01",
+            "sender_role": "friend",
+            "content": "Hey! Just confirming dinner tonight at 7. Can't wait! I invited everyone.",
+            "delivery_time": "2026-04-28T12:00:00"
+        },
+        {
+            "sender_id": "colleague_01",
+            "sender_role": "colleague",
+            "content": "Can we move the retro to 2pm instead? I have a conflict at 4.",
+            "delivery_time": "2026-04-28T11:00:00"
+        }
+    ]
+}

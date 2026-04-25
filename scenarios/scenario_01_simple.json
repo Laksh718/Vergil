@@ -1,0 +1,54 @@
+{
+    "scenario_id": "scenario_01_simple",
+    "description": "Stage 1 — Single stakeholder, 2 non-conflicting commitments, no cascading dependencies. Tests basic accept/decline decision making.",
+    "start_time": "2026-04-28T09:00:00",
+    "seed_commitments": [
+        {
+            "id": "C1",
+            "label": "Write Project Spec",
+            "description": "Prepare the technical specification document for the Q2 project",
+            "type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "role": "boss",
+            "deadline": "2026-04-28T17:00:00",
+            "duration_hours": 3.0,
+            "duration_std": 0.5,
+            "status": "pending"
+        },
+        {
+            "id": "C2",
+            "label": "Review PR #437",
+            "description": "Code review for the authentication module pull request",
+            "type": "explicit_soft",
+            "stakeholder_id": "colleague_01",
+            "role": "colleague",
+            "deadline": "2026-04-29T12:00:00",
+            "duration_hours": 1.5,
+            "duration_std": 0.5,
+            "status": "pending"
+        }
+    ],
+    "seed_edges": [],
+    "stakeholders": [
+        {"id": "boss_01", "name": "Sarah Chen", "role": "boss"},
+        {"id": "colleague_01", "name": "Alex Rivera", "role": "colleague"}
+    ],
+    "initial_trust": {
+        "boss_01": 0.65,
+        "colleague_01": 0.70
+    },
+    "message_schedule": [
+        {
+            "sender_id": "boss_01",
+            "sender_role": "boss",
+            "content": "Can you also prepare a quick summary for the board meeting tomorrow by 3pm?",
+            "delivery_time": "2026-04-28T11:00:00"
+        },
+        {
+            "sender_id": "colleague_01",
+            "sender_role": "colleague",
+            "content": "Hey, whenever you get a chance, could you review my design doc too? No rush.",
+            "delivery_time": "2026-04-28T14:00:00"
+        }
+    ]
+}
