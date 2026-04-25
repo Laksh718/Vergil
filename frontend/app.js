@@ -571,7 +571,8 @@ function renderReward(stepData) {
 //  CONVERSATION FEED
 // ═══════════════════════════════════════════════════════════
 function clearFeed() {
-    $('message-feed').innerHTML = '';
+    // Remove only .msg elements — leave #feed-empty intact
+    document.querySelectorAll('#message-feed .msg').forEach(el => el.remove());
     $('feed-empty').classList.remove('hidden');
 }
 
