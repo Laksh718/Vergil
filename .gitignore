@@ -5,3 +5,5 @@ __pycache__/
 training_results/
 /tmp/
 .DS_Store
+venv/
+.env

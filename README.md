@@ -1,3 +1,13 @@
+---
+title: Vergil SOTA Trainer
+emoji: ⚖️
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+pinned: false
+app_file: scripts/train_grpo_colab.py
+---
+
 # VERGIL — Commitment Dependency Graph Engine
 
 > **Research-grade RL environment for training LLMs in commitment reasoning, social trust management, and proactive renegotiation.**
