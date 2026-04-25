@@ -1,0 +1,118 @@
+{
+    "scenario_id": "scenario_12_force_majeure_recovery",
+    "description": "Stage 4 — A major production incident arrives mid-episode, blocking all development work for 6-8 hours. Agent has 4 accepted commitments with deadlines that are now impossible. Tests immediate renegotiation under force majeure: agent must notify all stakeholders proactively, offer alternatives, and manage trust while the incident is resolved.",
+    "seed_commitments": [
+        {
+            "node_id": "C1",
+            "label": "Feature: User Dashboard v2",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "client_01",
+            "estimated_duration_hours": 4.0,
+            "duration_std_hours": 1.0,
+            "urgency": 0.75,
+            "deadline_hours_from_start": 12,
+            "status": "accepted"
+        },
+        {
+            "node_id": "C2",
+            "label": "Code Review: Auth Refactor",
+            "commitment_type": "explicit_soft",
+            "stakeholder_id": "colleague_01",
+            "estimated_duration_hours": 2.0,
+            "duration_std_hours": 0.5,
+            "urgency": 0.60,
+            "deadline_hours_from_start": 8,
+            "status": "accepted"
+        },
+        {
+            "node_id": "C3",
+            "label": "1:1 Meeting Prep with Notes",
+            "commitment_type": "explicit_soft",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 1.0,
+            "duration_std_hours": 0.25,
+            "urgency": 0.55,
+            "deadline_hours_from_start": 6
+        },
+        {
+            "node_id": "C4",
+            "label": "Deploy Hotfix v2.1.4",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 1.5,
+            "duration_std_hours": 0.5,
+            "urgency": 0.88,
+            "deadline_hours_from_start": 10
+        }
+    ],
+    "edges": [
+        {
+            "from_node": "C2",
+            "to_node": "C4",
+            "edge_type": "temporal",
+            "lag_hours": 1.0
+        }
+    ],
+    "stakeholders": {
+        "client_01": {
+            "role": "client",
+            "trust_decay_rate": 0.12,
+            "trust_repair_rate": 0.07,
+            "escalation_threshold": 0.30,
+            "_true_urgency": 0.78,
+            "_true_flexibility_hours": 8,
+            "initial_trust": 0.73
+        },
+        "boss_01": {
+            "role": "boss",
+            "trust_decay_rate": 0.09,
+            "trust_repair_rate": 0.09,
+            "escalation_threshold": 0.28,
+            "_true_urgency": 0.85,
+            "initial_trust": 0.66
+        },
+        "colleague_01": {
+            "role": "colleague",
+            "trust_decay_rate": 0.05,
+            "trust_repair_rate": 0.14,
+            "escalation_threshold": 0.45,
+            "_true_urgency": 0.58,
+            "_true_flexibility_hours": 4,
+            "initial_trust": 0.80
+        }
+    },
+    "dynamic_messages": [
+        {
+            "step": 2,
+            "sender_role": "system",
+            "text": "🚨 MAJOR INCIDENT: Production database corruption detected. All engineers required on incident response. ETA for resolution: 6-8 hours. All non-incident work is blocked."
+        },
+        {
+            "step": 2,
+            "sender_role": "boss",
+            "text": "All hands on the DB incident. Drop everything else — this is a P0. Let me know if any of your commitments will slip."
+        },
+        {
+            "step": 3,
+            "sender_role": "colleague",
+            "text": "Hey, are you still doing the code review today? I'm waiting on it to start my testing."
+        },
+        {
+            "step": 4,
+            "sender_role": "client",
+            "text": "Haven't heard anything on Dashboard v2 — is that still on track for today?"
+        },
+        {
+            "step": 6,
+            "sender_role": "system",
+            "text": "✅ Incident resolved. Normal operations resume. 7 hours were consumed by incident response."
+        }
+    ],
+    "config": {
+        "max_steps_per_episode": 30,
+        "step_hours": 2,
+        "force_majeure_step": 2,
+        "force_majeure_blocks_hours": 7,
+        "notes": "At step 2, incident blocks 7h of work. Deadlines for C2 (8h) and C3 (6h) become impossible. C1 (12h) and C4 (10h) are marginally possible if agent acts fast. Key behavior: agent should RENEGOTIATE C2 and C3 immediately at step 2 (proactive bonus), not wait until they fail (silent_drop_penalty). Trust bonus for explaining the force majeure context."
+    }
+}

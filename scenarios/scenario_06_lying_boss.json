@@ -1,0 +1,85 @@
+{
+    "scenario_id": "scenario_06_lying_boss",
+    "description": "Stage 4 — Boss consistently underestimates task durations (says 2h, actually 8h). Agent must learn to infer true cost from past calibration and counter-propose or decline rather than blindly accepting.",
+    "seed_commitments": [
+        {
+            "node_id": "C1",
+            "label": "Competitive Analysis Report",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 2.0,
+            "duration_std_hours": 4.0,
+            "urgency": 0.85,
+            "deadline_hours_from_start": 10
+        },
+        {
+            "node_id": "C2",
+            "label": "Board Deck Revisions",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 1.5,
+            "duration_std_hours": 3.5,
+            "urgency": 0.90,
+            "deadline_hours_from_start": 8
+        },
+        {
+            "node_id": "C3",
+            "label": "Weekly Status Email",
+            "commitment_type": "explicit_soft",
+            "stakeholder_id": "colleague_01",
+            "estimated_duration_hours": 0.5,
+            "duration_std_hours": 0.25,
+            "urgency": 0.30,
+            "deadline_hours_from_start": 24
+        }
+    ],
+    "edges": [
+        {
+            "from_node": "C1",
+            "to_node": "C2",
+            "edge_type": "temporal",
+            "lag_hours": 0.5
+        }
+    ],
+    "stakeholders": {
+        "boss_01": {
+            "role": "boss",
+            "trust_decay_rate": 0.12,
+            "trust_repair_rate": 0.06,
+            "escalation_threshold": 0.25,
+            "_true_urgency": 0.95,
+            "_true_duration_multiplier": 4.0,
+            "initial_trust": 0.55
+        },
+        "colleague_01": {
+            "role": "colleague",
+            "trust_decay_rate": 0.05,
+            "trust_repair_rate": 0.12,
+            "escalation_threshold": 0.45,
+            "_true_urgency": 0.30,
+            "initial_trust": 0.75
+        }
+    },
+    "dynamic_messages": [
+        {
+            "step": 1,
+            "sender_role": "boss",
+            "text": "Oh also, this should only take you an hour or two. Just a quick scan of the market."
+        },
+        {
+            "step": 3,
+            "sender_role": "boss",
+            "text": "How is the competitive analysis coming? I need it to have at least 15 companies with pricing data."
+        },
+        {
+            "step": 5,
+            "sender_role": "boss",
+            "text": "Also please include a 5-year trend analysis and executive summary. Shouldn't be much more work."
+        }
+    ],
+    "config": {
+        "max_steps_per_episode": 25,
+        "step_hours": 2,
+        "notes": "True task durations are 4x the stated estimate. Agent should counter-propose extended deadlines or decline C2 to protect schedule."
+    }
+}

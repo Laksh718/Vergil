@@ -1,0 +1,115 @@
+{
+    "scenario_id": "scenario_10_deadline_cascade",
+    "description": "Stage 4 — A→B→C temporal dependency chain where A's deadline gets moved forward mid-episode (force majeure). This makes B and C infeasible unless the agent proactively renegotiates them before the cascade propagates. Tests early cascade detection and proactive renegotiation timing.",
+    "seed_commitments": [
+        {
+            "node_id": "C1",
+            "label": "Data Pipeline Refactor",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 6.0,
+            "duration_std_hours": 1.5,
+            "urgency": 0.70,
+            "deadline_hours_from_start": 24,
+            "status": "accepted"
+        },
+        {
+            "node_id": "C2",
+            "label": "ML Model Training Run",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "colleague_01",
+            "estimated_duration_hours": 4.0,
+            "duration_std_hours": 1.0,
+            "urgency": 0.75,
+            "deadline_hours_from_start": 32
+        },
+        {
+            "node_id": "C3",
+            "label": "Performance Report to Client",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "client_01",
+            "estimated_duration_hours": 3.0,
+            "duration_std_hours": 0.5,
+            "urgency": 0.85,
+            "deadline_hours_from_start": 40
+        },
+        {
+            "node_id": "C4",
+            "label": "Team Standup Presentation",
+            "commitment_type": "explicit_soft",
+            "stakeholder_id": "colleague_01",
+            "estimated_duration_hours": 1.0,
+            "duration_std_hours": 0.25,
+            "urgency": 0.40,
+            "deadline_hours_from_start": 48
+        }
+    ],
+    "edges": [
+        {
+            "from_node": "C1",
+            "to_node": "C2",
+            "edge_type": "temporal",
+            "lag_hours": 1
+        },
+        {
+            "from_node": "C2",
+            "to_node": "C3",
+            "edge_type": "temporal",
+            "lag_hours": 2
+        },
+        {
+            "from_node": "C1",
+            "to_node": "C4",
+            "edge_type": "logical",
+            "lag_hours": 0
+        }
+    ],
+    "stakeholders": {
+        "boss_01": {
+            "role": "boss",
+            "trust_decay_rate": 0.10,
+            "trust_repair_rate": 0.08,
+            "escalation_threshold": 0.30,
+            "_true_urgency": 0.85,
+            "initial_trust": 0.68
+        },
+        "colleague_01": {
+            "role": "colleague",
+            "trust_decay_rate": 0.06,
+            "trust_repair_rate": 0.12,
+            "escalation_threshold": 0.45,
+            "_true_urgency": 0.72,
+            "initial_trust": 0.75
+        },
+        "client_01": {
+            "role": "client",
+            "trust_decay_rate": 0.14,
+            "trust_repair_rate": 0.05,
+            "escalation_threshold": 0.28,
+            "_true_urgency": 0.90,
+            "initial_trust": 0.65
+        }
+    },
+    "dynamic_messages": [
+        {
+            "step": 2,
+            "sender_role": "boss",
+            "text": "Change of plans — I need the data pipeline done by EOD today (moved from tomorrow). Executive team wants to review the data tonight."
+        },
+        {
+            "step": 3,
+            "sender_role": "colleague",
+            "text": "Hey, is the pipeline still on track? My training run is blocked until it's done."
+        },
+        {
+            "step": 4,
+            "sender_role": "client",
+            "text": "Just confirming our performance report is on track for tomorrow?"
+        }
+    ],
+    "config": {
+        "max_steps_per_episode": 30,
+        "step_hours": 2,
+        "notes": "At step 2, boss moves C1 deadline from 24h to ~8h. This makes C2 (starts after C1+1h) and C3 (starts after C2+2h) infeasible. Agent must detect cascade risk immediately and renegotiate C2 and C3 BEFORE they fail. Reward heavily favors proactive renegotiation over silent drop."
+    }
+}

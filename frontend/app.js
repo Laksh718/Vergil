@@ -660,3 +660,279 @@ function shake(el) {
     el.offsetHeight; // Trigger reflow
     el.style.animation = 'shake 0.4s ease';
 }
+
+// ═══════════════════════════════════════════════════════════
+//  COMPARISON MODE — Before / After Demo
+// ═══════════════════════════════════════════════════════════
+
+let compareData = null;
+let compareStep = 0;
+let compareAutoTimer = null;
+
+document.getElementById('btn-compare').addEventListener('click', () => {
+    document.getElementById('compare-overlay').classList.remove('hidden');
+});
+
+document.getElementById('btn-close-compare').addEventListener('click', () => {
+    clearInterval(compareAutoTimer);
+    compareAutoTimer = null;
+    document.getElementById('compare-overlay').classList.add('hidden');
+});
+
+document.getElementById('btn-run-compare').addEventListener('click', runComparison);
+document.getElementById('replay-prev').addEventListener('click', () => stepReplay(-1));
+document.getElementById('replay-next').addEventListener('click', () => stepReplay(+1));
+document.getElementById('replay-auto').addEventListener('click', toggleReplayAuto);
+
+async function runComparison() {
+    const scenarioId = document.getElementById('compare-scenario-select').value;
+    const loading = document.getElementById('compare-loading');
+    const body = document.getElementById('compare-body');
+
+    loading.classList.remove('hidden');
+    body.style.opacity = '0.3';
+
+    try {
+        const resp = await fetch('/api/compare', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scenario_id: scenarioId, n_steps: 25 }),
+        });
+        if (!resp.ok) throw new Error(await resp.text());
+        compareData = await resp.json();
+        compareStep = 0;
+
+        renderCompareFinalGraphs();
+        renderCompareDelta();
+        renderCompareStep(0);
+
+    } catch (err) {
+        alert('Compare failed: ' + err.message);
+    } finally {
+        loading.classList.add('hidden');
+        body.style.opacity = '1';
+    }
+}
+
+function renderCompareFinalGraphs() {
+    const d = compareData;
+
+    // Final state graphs (last trajectory step)
+    const naiveGraph = d.naive.final_graph;
+    const vergilGraph = d.vergil.final_graph;
+
+    renderMiniGraph('#compare-svg-naive', naiveGraph, 'naive');
+    renderMiniGraph('#compare-svg-vergil', vergilGraph, 'vergil');
+
+    // Stats
+    document.getElementById('naive-reward').textContent  = `Reward: ${d.naive.total_reward > 0 ? '+' : ''}${d.naive.total_reward}`;
+    document.getElementById('naive-sat').textContent     = `SAT: ${(d.naive.final_satisfiability * 100).toFixed(0)}%`;
+    document.getElementById('naive-failed').textContent  = `Failed: ${d.naive.n_failed}`;
+    document.getElementById('vergil-reward').textContent = `Reward: ${d.vergil.total_reward > 0 ? '+' : ''}${d.vergil.total_reward}`;
+    document.getElementById('vergil-sat').textContent    = `SAT: ${(d.vergil.final_satisfiability * 100).toFixed(0)}%`;
+    document.getElementById('vergil-failed').textContent = `Failed: ${d.vergil.n_failed}`;
+
+    // Trust bars
+    renderCompareTrust('naive-trust', d.naive.final_trust);
+    renderCompareTrust('vergil-trust', d.vergil.final_trust);
+}
+
+function renderMiniGraph(svgSelector, graph, side) {
+    const svgEl = document.querySelector(svgSelector);
+    if (!svgEl || !graph) return;
+    const svg = d3.select(svgEl);
+    svg.selectAll('*').remove();
+
+    const W = svgEl.clientWidth  || 400;
+    const H = svgEl.clientHeight || 280;
+
+    const statusColor = {
+        pending:      '#fbbf24',
+        accepted:     '#60a5fa',
+        completed:    '#4ade80',
+        failed:       '#f87171',
+        at_risk:      '#fb923c',
+        renegotiated: '#a78bfa',
+    };
+
+    const nodes = (graph.nodes || []).map(n => ({ ...n }));
+    const edges = (graph.edges || []).map(e => ({ ...e }));
+
+    const sim = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(edges).id(d => d.id).distance(90))
+        .force('charge', d3.forceManyBody().strength(-220))
+        .force('center', d3.forceCenter(W / 2, H / 2))
+        .force('collision', d3.forceCollide(36))
+        .stop();
+
+    for (let i = 0; i < 200; i++) sim.tick();
+
+    const g = svg.append('g');
+
+    // Edges
+    g.selectAll('.cmp-edge')
+        .data(edges)
+        .enter().append('line')
+        .attr('class', 'cmp-edge')
+        .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x).attr('y2', d => d.target.y)
+        .attr('stroke', '#2a3a5c')
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', d => d.type === 'resource' ? '4,3' : null);
+
+    // Nodes
+    const nodeG = g.selectAll('.cmp-node')
+        .data(nodes)
+        .enter().append('g')
+        .attr('class', 'cmp-node')
+        .attr('transform', d => `translate(${d.x},${d.y})`);
+
+    nodeG.append('circle')
+        .attr('r', 22)
+        .attr('fill', d => statusColor[d.status] || '#6b7280')
+        .attr('fill-opacity', 0.18)
+        .attr('stroke', d => statusColor[d.status] || '#6b7280')
+        .attr('stroke-width', 2.5);
+
+    // Cascade pulse animation for failed nodes on naive side
+    if (side === 'naive') {
+        nodeG.filter(d => d.status === 'failed')
+            .append('circle')
+            .attr('r', 22)
+            .attr('fill', 'none')
+            .attr('stroke', '#f87171')
+            .attr('stroke-width', 2)
+            .attr('opacity', 0.6)
+            .append('animate')
+            .attr('attributeName', 'r')
+            .attr('values', '22;32;22')
+            .attr('dur', '1.4s')
+            .attr('repeatCount', 'indefinite');
+    }
+
+    nodeG.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .attr('font-size', '10px')
+        .attr('fill', '#e2e8f0')
+        .attr('font-family', 'Inter, sans-serif')
+        .text(d => d.id);
+
+    // Short label below node
+    nodeG.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '2.4em')
+        .attr('font-size', '8px')
+        .attr('fill', '#9ca3af')
+        .attr('font-family', 'Inter, sans-serif')
+        .text(d => d.label ? d.label.slice(0, 16) + (d.label.length > 16 ? '…' : '') : '');
+}
+
+function renderCompareTrust(containerId, trustObj) {
+    const container = document.getElementById(containerId);
+    if (!container || !trustObj) return;
+    container.innerHTML = Object.entries(trustObj).map(([sid, score]) => {
+        const pct = Math.round(score * 100);
+        const color = score >= 0.6 ? '#4ade80' : score >= 0.35 ? '#fbbf24' : '#f87171';
+        return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:10px;color:#9ca3af;width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sid}</span>
+            <div style="flex:1;height:5px;background:#1e2a42;border-radius:3px">
+                <div style="width:${pct}%;height:100%;background:${color};border-radius:3px;transition:width 0.4s"></div>
+            </div>
+            <span style="font-size:10px;font-family:monospace;color:${color};width:32px;text-align:right">${pct}%</span>
+        </div>`;
+    }).join('');
+}
+
+function renderCompareDelta() {
+    if (!compareData) return;
+    const c = compareData.comparison;
+
+    const rDelta = c.reward_delta;
+    const sEl = document.getElementById('delta-reward');
+    sEl.textContent = `${rDelta >= 0 ? '+' : ''}${rDelta.toFixed(3)}`;
+    sEl.className = `delta-val ${rDelta >= 0 ? 'positive' : 'negative'}`;
+
+    const satD = c.sat_delta;
+    const satEl = document.getElementById('delta-sat');
+    satEl.textContent = `${satD >= 0 ? '+' : ''}${(satD * 100).toFixed(1)}%`;
+    satEl.className = `delta-val ${satD >= 0 ? 'positive' : 'negative'}`;
+
+    document.getElementById('delta-fail').textContent = `${c.failure_reduction >= 0 ? '-' : '+'}${Math.abs(c.failure_reduction)}`;
+}
+
+function renderCompareStep(idx) {
+    if (!compareData) return;
+    const naiveTraj  = compareData.naive.trajectory;
+    const vergilTraj = compareData.vergil.trajectory;
+    const maxStep = Math.max(naiveTraj.length, vergilTraj.length) - 1;
+    idx = Math.max(0, Math.min(idx, maxStep));
+    compareStep = idx;
+
+    document.getElementById('replay-step-label').textContent = `Step ${idx + 1} / ${maxStep + 1}`;
+
+    const naiveStep  = naiveTraj[idx];
+    const vergilStep = vergilTraj[idx];
+
+    // Naive side
+    if (naiveStep) {
+        const actionColor = naiveStep.action === 'accept' ? '#60a5fa' : naiveStep.action === 'decline' ? '#f87171' : '#fbbf24';
+        document.getElementById('replay-naive-action').innerHTML =
+            `<span style="color:${actionColor}">${naiveStep.action.toUpperCase()}</span> → ${naiveStep.target || 'none'}`;
+        document.getElementById('replay-naive-reason').textContent = naiveStep.reasoning || 'No reasoning provided.';
+        const nr = naiveStep.reward;
+        document.getElementById('replay-naive-reward').innerHTML =
+            `<span style="color:${nr >= 0 ? '#4ade80' : '#f87171'}">${nr >= 0 ? '+' : ''}${nr.toFixed(4)} reward</span>`;
+
+        // Update graph to show this step's state
+        if (naiveStep.state && naiveStep.state.graph) {
+            renderMiniGraph('#compare-svg-naive', naiveStep.state.graph, 'naive');
+        }
+    }
+
+    // VERGIL side
+    if (vergilStep) {
+        const actionColor = vergilStep.action === 'accept' ? '#60a5fa' : vergilStep.action === 'decline' ? '#f87171' : '#fbbf24';
+        document.getElementById('replay-vergil-action').innerHTML =
+            `<span style="color:${actionColor}">${vergilStep.action.toUpperCase()}</span> → ${vergilStep.target || 'none'}`;
+        document.getElementById('replay-vergil-reason').textContent = vergilStep.reasoning || 'No reasoning provided.';
+        const vr = vergilStep.reward;
+        document.getElementById('replay-vergil-reward').innerHTML =
+            `<span style="color:${vr >= 0 ? '#4ade80' : '#f87171'}">${vr >= 0 ? '+' : ''}${vr.toFixed(4)} reward</span>`;
+
+        if (vergilStep.state && vergilStep.state.graph) {
+            renderMiniGraph('#compare-svg-vergil', vergilStep.state.graph, 'vergil');
+        }
+    }
+}
+
+function stepReplay(delta) {
+    renderCompareStep(compareStep + delta);
+}
+
+function toggleReplayAuto() {
+    const btn = document.getElementById('replay-auto');
+    if (compareAutoTimer) {
+        clearInterval(compareAutoTimer);
+        compareAutoTimer = null;
+        btn.textContent = '▶ Auto';
+        btn.style.color = '#60a5fa';
+    } else {
+        btn.textContent = '⏸ Pause';
+        btn.style.color = '#fbbf24';
+        compareAutoTimer = setInterval(() => {
+            const maxStep = Math.max(
+                (compareData?.naive?.trajectory?.length || 1),
+                (compareData?.vergil?.trajectory?.length || 1)
+            ) - 1;
+            if (compareStep >= maxStep) {
+                clearInterval(compareAutoTimer);
+                compareAutoTimer = null;
+                btn.textContent = '▶ Auto';
+                btn.style.color = '#60a5fa';
+            } else {
+                stepReplay(+1);
+            }
+        }, 1200);
+    }
+}

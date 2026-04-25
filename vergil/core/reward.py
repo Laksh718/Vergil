@@ -361,6 +361,25 @@ class VERGILReward:
 
         return sum(scores) / len(scores) if scores else 0.0
 
+    def compute_shaped_reward(
+        self,
+        base_reward: float,
+        prev_satisfiability: float,
+        new_satisfiability: float,
+        gamma: float = 0.99,
+    ) -> float:
+        """
+        Potential-based reward shaping: R' = R + γ×Φ(s') - Φ(s)
+        where Φ(s) = satisfiability_score(CDG).
+
+        This provides dense intermediate feedback aligned with the sparse
+        terminal reward — critical for long-horizon credit assignment.
+        The shaping is potential-based so it does NOT change the optimal policy
+        (policy invariance theorem, Ng et al. 1999).
+        """
+        potential_delta = gamma * new_satisfiability - prev_satisfiability
+        return base_reward + potential_delta
+
     def reset_episode(self) -> None:
         """Reset episode-level trackers."""
         self._step_decisions = []

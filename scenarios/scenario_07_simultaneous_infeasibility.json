@@ -1,0 +1,95 @@
+{
+    "scenario_id": "scenario_07_simultaneous_infeasibility",
+    "description": "Stage 4 — Three high-urgency commitments arrive simultaneously. Each is individually feasible (2h each) but together require 6h in a 4h window. Agent must make a joint decision: accept 1-2, decline or counter the rest. Wrong answer: accept all three.",
+    "seed_commitments": [
+        {
+            "node_id": "C1",
+            "label": "Emergency Client Patch",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "client_01",
+            "estimated_duration_hours": 2.5,
+            "duration_std_hours": 0.5,
+            "urgency": 0.95,
+            "deadline_hours_from_start": 4
+        },
+        {
+            "node_id": "C2",
+            "label": "Legal Compliance Review",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 2.0,
+            "duration_std_hours": 0.5,
+            "urgency": 0.90,
+            "deadline_hours_from_start": 4
+        },
+        {
+            "node_id": "C3",
+            "label": "Sprint Retrospective Facilitation",
+            "commitment_type": "explicit_hard",
+            "stakeholder_id": "colleague_01",
+            "estimated_duration_hours": 1.5,
+            "duration_std_hours": 0.25,
+            "urgency": 0.75,
+            "deadline_hours_from_start": 4
+        },
+        {
+            "node_id": "C4",
+            "label": "Ongoing Feature Development",
+            "commitment_type": "explicit_soft",
+            "stakeholder_id": "boss_01",
+            "estimated_duration_hours": 4.0,
+            "duration_std_hours": 1.0,
+            "urgency": 0.50,
+            "deadline_hours_from_start": 48
+        }
+    ],
+    "edges": [],
+    "stakeholders": {
+        "client_01": {
+            "role": "client",
+            "trust_decay_rate": 0.15,
+            "trust_repair_rate": 0.05,
+            "escalation_threshold": 0.30,
+            "_true_urgency": 0.95,
+            "initial_trust": 0.70
+        },
+        "boss_01": {
+            "role": "boss",
+            "trust_decay_rate": 0.10,
+            "trust_repair_rate": 0.08,
+            "escalation_threshold": 0.30,
+            "_true_urgency": 0.88,
+            "initial_trust": 0.65
+        },
+        "colleague_01": {
+            "role": "colleague",
+            "trust_decay_rate": 0.06,
+            "trust_repair_rate": 0.12,
+            "escalation_threshold": 0.45,
+            "_true_urgency": 0.70,
+            "initial_trust": 0.80
+        }
+    },
+    "dynamic_messages": [
+        {
+            "step": 0,
+            "sender_role": "client",
+            "text": "URGENT: Production is down for 200 users. I need this patch deployed within 4 hours or we escalate."
+        },
+        {
+            "step": 0,
+            "sender_role": "boss",
+            "text": "Legal just flagged our compliance review deadline. This is non-negotiable — today."
+        },
+        {
+            "step": 0,
+            "sender_role": "colleague",
+            "text": "Hey, the retro starts in 4 hours and you're facilitating. Are we still on?"
+        }
+    ],
+    "config": {
+        "max_steps_per_episode": 20,
+        "step_hours": 1,
+        "notes": "Available capacity = 4h. C1+C2+C3 = 6h total. Only 2 of 3 can be done. Optimal: accept C1 (client highest stakes), counter C2 (extend to tomorrow), renegotiate C3 to async format."
+    }
+}
