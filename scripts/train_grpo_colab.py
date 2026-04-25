@@ -447,7 +447,8 @@ def train_grpo():
 
     training_config = GRPOConfig(
         output_dir="/tmp/vergil_grpo_output",
-        num_train_epochs=3,                  # 3 passes over the curriculum dataset
+        num_train_epochs=1,                  # 1 pass for fast shortcut execution
+        max_steps=125,                       # Force termination at 125 steps (2 hours)
         per_device_train_batch_size=2,
         gradient_accumulation_steps=8,       # Effective batch = 16
         learning_rate=2e-5,                  # Lower LR for rank-64 LoRA stability
