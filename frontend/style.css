@@ -6,41 +6,41 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    /* Palette — deep navy with vibrant accents */
-    --bg-body: #0a0e1a;
-    --bg-card: #111827;
-    --bg-card-hover: #1a2236;
-    --bg-input: #0d1322;
-    --bg-topbar: rgba(10, 14, 26, 0.92);
-    --border: hsla(220, 30%, 28%, 0.4);
-    --border-active: hsla(200, 80%, 55%, 0.5);
+    /* Premium Palette — deep navy with vibrant accents */
+    --bg-body: #050a14;
+    --bg-glass: rgba(13, 20, 36, 0.7);
+    --bg-card: rgba(18, 26, 46, 0.85);
+    --bg-card-hover: rgba(28, 38, 66, 0.9);
+    --bg-topbar: rgba(5, 10, 20, 0.95);
+    --border: hsla(220, 40%, 35%, 0.25);
+    --border-active: hsla(200, 90%, 65%, 0.6);
 
-    --text-primary: #e8ecf4;
+    --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
-    --text-dim: #5b6b82;
-    --text-accent: #60a5fa;
+    --text-dim: #64748b;
+    --text-accent: #38bdf8;
 
-    --accent-blue: #3b82f6;
-    --accent-green: #22c55e;
-    --accent-red: #ef4444;
-    --accent-yellow: #eab308;
-    --accent-purple: #a855f7;
-    --accent-cyan: #06b6d4;
-    --accent-orange: #f97316;
+    --accent-blue: #0ea5e9;
+    --accent-green: #10b981;
+    --accent-red: #f43f5e;
+    --accent-yellow: #f59e0b;
+    --accent-purple: #8b5cf6;
+    --accent-cyan: #22d3ee;
+    --accent-orange: #fb923c;
 
-    --radius: 10px;
+    --radius: 14px;
     --radius-sm: 6px;
-    --radius-lg: 16px;
-    --shadow: 0 4px 24px rgba(0,0,0,0.35);
+    --radius-lg: 20px;
+    --shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
     --shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
+    --glow: 0 0 15px currentColor;
     --transition: 200ms ease;
 
-    --font: 'Inter', -apple-system, system-ui, sans-serif;
+    --font: 'Outfit', 'Inter', system-ui, sans-serif;
     --mono: 'JetBrains Mono', 'SF Mono', monospace;
 }
 
 html, body {
-    height: 100%;
     font-family: var(--font);
     font-size: 14px;
     background: var(--bg-body);
@@ -302,6 +302,7 @@ a { color: var(--text-accent); text-decoration: none; }
     width: 100%;
     height: 100%;
     display: block;
+    background: transparent;
 }
 
 #graph-empty {
@@ -613,18 +614,24 @@ a { color: var(--text-accent); text-decoration: none; }
    D3 Graph Styles
    ═══════════════════════════════════════════════════════════ */
 .node-circle {
-    stroke-width: 2px;
+    stroke-width: 2.5px;
     cursor: pointer;
-    transition: r 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    animation: nodePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
-.node-circle:hover { r: 26; }
+.node-circle:hover { 
+    r: 28; 
+    stroke-width: 3.5px;
+    filter: var(--glow);
+}
 
-.node-circle.pending   { fill: rgba(234, 179, 8, 0.15); stroke: var(--accent-yellow); }
-.node-circle.accepted  { fill: rgba(59, 130, 246, 0.15); stroke: var(--accent-blue); }
-.node-circle.completed { fill: rgba(34, 197, 94, 0.15); stroke: var(--accent-green); }
-.node-circle.failed    { fill: rgba(239, 68, 68, 0.15); stroke: var(--accent-red); }
-.node-circle.at_risk   { fill: rgba(249, 115, 22, 0.15); stroke: var(--accent-orange); }
-.node-circle.renegotiated { fill: rgba(168, 85, 247, 0.15); stroke: var(--accent-purple); }
+.node-circle.pending   { fill: rgba(245, 158, 11, 0.1); stroke: var(--accent-yellow); }
+.node-circle.accepted  { fill: rgba(14, 165, 233, 0.1); stroke: var(--accent-blue); }
+.node-circle.completed { fill: rgba(16, 185, 129, 0.1); stroke: var(--accent-green); }
+.node-circle.failed    { fill: rgba(244, 63, 94, 0.1); stroke: var(--accent-red); }
+.node-circle.at_risk   { fill: rgba(251, 146, 60, 0.1); stroke: var(--accent-orange); }
+.node-circle.renegotiated { fill: rgba(139, 92, 246, 0.1); stroke: var(--accent-purple); }
 
 .node-circle.selected  { stroke-width: 3px; filter: drop-shadow(0 0 8px currentColor); }
 
@@ -653,11 +660,21 @@ a { color: var(--text-accent); text-decoration: none; }
 }
 
 .edge-line {
-    stroke: hsla(220, 20%, 35%, 0.4);
-    stroke-width: 1.5;
+    stroke: hsla(220, 20%, 55%, 0.2);
+    stroke-width: 2;
     fill: none;
+    transition: stroke 0.3s ease;
 }
-.edge-line.dependency { stroke-dasharray: 5 3; }
+.edge-line.dependency { 
+    stroke-dasharray: 6 3; 
+    animation: linePulse 1.5s linear infinite;
+    stroke: var(--accent-blue);
+    opacity: 0.6;
+}
+.edge-line.resource {
+    stroke: hsla(280, 50%, 60%, 0.4);
+    stroke-width: 1.5;
+}
 
 /* ═══════════════════════════════════════════════════════════
    EPISODE DONE OVERLAY
