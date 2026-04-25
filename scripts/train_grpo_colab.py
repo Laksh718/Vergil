@@ -212,7 +212,7 @@ def _snapshot_env(env, pomdp) -> dict:
         'cdg_nodes': copy.deepcopy(env.cdg._nodes) if env.cdg else {},
         'multidim_trust': copy.deepcopy(getattr(env, 'multidim_trust', {})),
         'belief': copy.deepcopy(pomdp.current_belief) if hasattr(pomdp, 'current_belief') else None,
-        'step_count': env._step_count,
+        'step_count': env._current_step,
     }
 
 
@@ -224,7 +224,7 @@ def _restore_env(env, pomdp, snapshot: dict):
     if env.cdg:
         env.cdg._nodes = copy.deepcopy(snapshot['cdg_nodes'])
     env.multidim_trust = copy.deepcopy(snapshot['multidim_trust'])
-    env._step_count = snapshot['step_count']
+    env._current_step = snapshot['step_count']
     if snapshot['belief'] is not None and hasattr(pomdp, 'current_belief'):
         pomdp.current_belief = copy.deepcopy(snapshot['belief'])
 
