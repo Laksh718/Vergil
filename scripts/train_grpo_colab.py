@@ -21,6 +21,7 @@
 # %cd Virgil
 
 import json
+import os
 import sys
 import time
 import numpy as np
@@ -396,7 +397,8 @@ def train_grpo():
     print("\n📝 Generating training prompts across curriculum stages...")
     training_prompts = []
 
-    STAGE_EPISODES = {1: 80, 2: 120, 3: 150, 4: 150}  # Total: 500 episodes
+    # Fast-track: 80 total prompts instead of 500 → ~15-20 min on T4
+    STAGE_EPISODES = {1: 10, 2: 15, 3: 25, 4: 30}  # Total: 80 episodes
 
     for stage, n_episodes in STAGE_EPISODES.items():
         print(f"  Stage {stage}: generating {n_episodes} episodes...")
@@ -443,22 +445,23 @@ def train_grpo():
 
     from trl import GRPOConfig, GRPOTrainer
 
-    NUM_GENERATIONS = 8  # GRPO group size — 8 rollouts per CDG topology
+    # Fast-track: 4 generations instead of 8 → halves inference cost
+    NUM_GENERATIONS = 4
 
     training_config = GRPOConfig(
         output_dir="/tmp/vergil_grpo_output",
-        num_train_epochs=1,                  # 1 pass for fast shortcut execution
-        max_steps=125,                       # Force termination at 125 steps (2 hours)
-        per_device_train_batch_size=2,
-        gradient_accumulation_steps=8,       # Effective batch = 16
-        learning_rate=2e-5,                  # Lower LR for rank-64 LoRA stability
-        max_completion_length=512,           # Enough for <think> block + JSON
+        num_train_epochs=1,
+        max_steps=40,                        # Hard ceiling → ~15-20 min on T4
+        per_device_train_batch_size=1,       # Smallest batch, maximize speed
+        gradient_accumulation_steps=4,       # Effective batch = 4
+        learning_rate=2e-5,
+        max_completion_length=192,           # Enough for <think> + JSON, no waste
         num_generations=NUM_GENERATIONS,
         logging_steps=5,
-        save_steps=50,
-        warmup_steps=30,
+        save_steps=20,
+        warmup_steps=10,
         report_to="none",
-        temperature=0.9,                     # Some exploration during GRPO rollouts
+        temperature=0.9,
         top_p=0.95,
     )
 
@@ -603,9 +606,34 @@ def train_grpo():
     model.save_pretrained("/tmp/vergil_grpo_model")
     tokenizer.save_pretrained("/tmp/vergil_grpo_model")
 
-    # For HF upload:
-    # model.push_to_hub("YOUR_USERNAME/vergil-commitment-engine")
-    # tokenizer.push_to_hub("YOUR_USERNAME/vergil-commitment-engine")
+    # ── Auto-push to HuggingFace Hub ─────────────────────────────────────
+    hf_token = os.getenv('HF_TOKEN')
+    repo_id = "Laksh718/vergil-commitment-engine"
+    if hf_token:
+        print(f"\n🚀 Pushing model to HuggingFace Hub: {repo_id}")
+        try:
+            model.push_to_hub(repo_id, token=hf_token,
+                              commit_message="VERGIL GRPO fast-track — rank=64, 40 steps")
+            tokenizer.push_to_hub(repo_id, token=hf_token)
+
+            # Upload validation log if it exists
+            vp = Path('/tmp/vergil_grpo_output/validation_log.json')
+            if vp.exists():
+                from huggingface_hub import HfApi
+                HfApi().upload_file(
+                    path_or_fileobj=str(vp),
+                    path_in_repo="validation_log.json",
+                    repo_id=repo_id,
+                    token=hf_token,
+                    commit_message="Add validation log",
+                )
+            print(f"  ✅ Model live at https://huggingface.co/{repo_id}")
+        except Exception as e:
+            print(f"  ⚠️  HF push failed: {e}")
+            print(f"  Model saved locally at /tmp/vergil_grpo_model")
+    else:
+        print("\n⚠️  No HF_TOKEN env var — model saved locally only")
+        print(f"  To push: model.push_to_hub('{repo_id}', token='your_token')")
 
     print("\n═══════════════════════════════════════════════════════")
     print("  GRPO TRAINING COMPLETE")

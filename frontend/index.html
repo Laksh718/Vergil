@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VERGIL — Commitment Dependency Graph Engine</title>
-    <meta name="description" content="RL-powered agent that learns to manage commitments, negotiate deadlines, and maintain trust">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
@@ -12,247 +11,255 @@
 </head>
 <body>
 
-<!-- ═══════════════════ ONBOARDING OVERLAY ═══════════════════ -->
-<div id="onboarding" class="overlay">
-    <div class="onboarding-card">
-        <div class="onboarding-icon">🧠</div>
-        <h1>VERGIL</h1>
-        <p class="onboarding-subtitle">Commitment Dependency Graph Engine</p>
-        <p class="onboarding-desc">
-            An RL agent that learns to <strong>accept, decline, or renegotiate</strong> work commitments 
-            while maintaining trust with stakeholders and preventing cascading failures.
-        </p>
-        <div class="onboarding-features">
-            <div class="feature">
-                <span class="feature-icon">📊</span>
-                <span>Watch the agent manage a graph of commitments</span>
-            </div>
-            <div class="feature">
-                <span class="feature-icon">🤝</span>
-                <span>Trust changes based on how the agent handles requests</span>
-            </div>
-            <div class="feature">
-                <span class="feature-icon">🏆</span>
-                <span>7-component reward function scores every decision</span>
-            </div>
+<!-- ══════════════════ TOP BAR ══════════════════ -->
+<header id="topbar">
+    <div class="topbar-left">
+        <div class="brand">
+            <span class="brand-glyph">⟁</span>
+            <span class="brand-name">VERGIL</span>
         </div>
-        <button class="start-btn" id="btn-start">Start Demo →</button>
-    </div>
-</div>
-
-<!-- ═══════════════════ MAIN APP ═══════════════════ -->
-<div id="app" class="hidden">
-
-    <!-- ─── TOP BAR ──────────────────────────────── -->
-    <header id="topbar">
-        <div class="topbar-left">
-            <span class="brand">🧠 VERGIL</span>
-            <div class="badge" id="badge-stage">Stage 1</div>
-        </div>
-        <div class="topbar-stats">
-            <div class="stat">
-                <span class="stat-label">Step</span>
-                <span class="stat-val" id="stat-step">0</span>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat">
-                <span class="stat-label">Reward</span>
-                <span class="stat-val" id="stat-reward">0.00</span>
-            </div>
-            <div class="stat-divider"></div>
-            <div class="stat">
-                <span class="stat-label">Schedule Health</span>
-                <span class="stat-val" id="stat-sat">—</span>
-            </div>
-        </div>
-        <div class="topbar-right">
-            <a href="/dashboard" style="color:#60a5fa;font-size:13px;text-decoration:none;margin-right:8px" title="Training Dashboard">📊 Dashboard</a>
-            <button class="btn-compare" id="btn-compare" title="See Naive vs VERGIL side-by-side">⚡ Compare</button>
-            <select id="scenario-select"><option value="">Default Scenario</option></select>
-            <button class="btn-reset" id="btn-reset">🔄 New Episode</button>
-        </div>
-    </header>
-
-    <!-- ─── SITUATION BANNER ─────────────────────── -->
-    <div id="situation-banner">
-        <div id="situation-icon">💡</div>
-        <div id="situation-text">Click <strong>"New Episode"</strong> to start. You'll see commitment requests appear as nodes in the graph.</div>
+        <div class="badge" id="badge-stage">Stage 1</div>
     </div>
 
-    <!-- ─── MAIN LAYOUT ──────────────────────────── -->
-    <div id="layout">
-
-        <!-- LEFT: Graph + Legend -->
-        <section id="graph-section">
-            <div id="graph-area">
-                <svg id="graph-svg"></svg>
-                <div id="graph-empty">
-                    <span class="empty-icon">📊</span>
-                    <span>No commitments loaded.<br>Click "New Episode" to begin.</span>
-                </div>
-            </div>
-            <div id="legend">
-                <span class="leg"><span class="dot pending"></span> Pending — needs decision</span>
-                <span class="leg"><span class="dot accepted"></span> Accepted — in progress</span>
-                <span class="leg"><span class="dot completed"></span> Completed ✓</span>
-                <span class="leg"><span class="dot failed"></span> Failed ✕</span>
-            </div>
-        </section>
-
-        <!-- RIGHT: Panels -->
-        <aside id="sidebar">
-
-            <!-- CURRENT TARGET -->
-            <div class="card" id="card-target">
-                <div class="card-title">🎯 Current Target</div>
-                <div id="target-info">
-                    <p class="muted">No commitment selected. Click a node or pick from the list below.</p>
-                </div>
-                <select id="node-picker"><option value="">— Choose a commitment —</option></select>
-            </div>
-
-            <!-- ACTIONS -->
-            <div class="card" id="card-actions">
-                <div class="card-title">⚡ Actions</div>
-                <div id="action-grid">
-                    <button class="act-btn accept" data-action="accept">
-                        <span class="act-icon">✅</span>
-                        <span class="act-label">Accept</span>
-                        <span class="act-desc">Commit to doing it</span>
-                    </button>
-                    <button class="act-btn decline" data-action="decline">
-                        <span class="act-icon">❌</span>
-                        <span class="act-label">Decline</span>
-                        <span class="act-desc">Say no (trust may drop)</span>
-                    </button>
-                    <button class="act-btn counter" data-action="counter_propose">
-                        <span class="act-icon">🔄</span>
-                        <span class="act-label">Counter</span>
-                        <span class="act-desc">Propose new deadline</span>
-                    </button>
-                    <button class="act-btn wait" data-action="do_nothing">
-                        <span class="act-icon">⏳</span>
-                        <span class="act-label">Wait</span>
-                        <span class="act-desc">Let time pass</span>
-                    </button>
-                </div>
-                <button class="autoplay-btn" id="btn-auto">▶ Auto-Play Agent</button>
-            </div>
-
-            <!-- TRUST -->
-            <div class="card" id="card-trust">
-                <div class="card-title">🤝 Trust Levels</div>
-                <div id="trust-list"></div>
-            </div>
-
-            <!-- LAST REWARD -->
-            <div class="card" id="card-reward">
-                <div class="card-title">🏆 Last Reward</div>
-                <div id="reward-display">
-                    <div class="reward-big" id="reward-number">—</div>
-                    <div id="reward-breakdown"></div>
-                </div>
-            </div>
-
-            <!-- EVENT LOG -->
-            <div class="card" id="card-log">
-                <div class="card-title">📜 Event Log</div>
-                <div id="log-list"></div>
-            </div>
-
-        </aside>
-    </div>
-</div>
-
-<!-- ═══════════════ COMPARISON MODE OVERLAY ═══════════════ -->
-<div id="compare-overlay" class="compare-overlay hidden">
-    <div class="compare-header">
-        <div class="compare-title">
-            <span class="compare-badge naive-badge">❌ Naive Agent</span>
-            <span class="compare-vs">vs</span>
-            <span class="compare-badge vergil-badge">✅ VERGIL-Trained</span>
+    <div class="topbar-stats">
+        <div class="stat-pill">
+            <span class="sp-label">STEP</span>
+            <span class="sp-val" id="stat-step">0</span>
         </div>
-        <div class="compare-controls">
-            <select id="compare-scenario-select">
-                <option value="scenario_04_deadline_crunch">Deadline Crunch (Stage 3)</option>
-                <option value="scenario_07_simultaneous_infeasibility">Simultaneous Infeasibility (Stage 4)</option>
-                <option value="scenario_10_deadline_cascade">Deadline Cascade (Stage 4)</option>
-                <option value="scenario_11_impossible_math">Impossible Math (Stage 4)</option>
-                <option value="scenario_12_force_majeure_recovery">Force Majeure Recovery (Stage 4)</option>
+        <div class="stat-pill">
+            <span class="sp-label">REWARD</span>
+            <span class="sp-val" id="stat-reward">+0.00</span>
+        </div>
+        <div class="stat-pill">
+            <span class="sp-label">HEALTH</span>
+            <span class="sp-val" id="stat-sat">—</span>
+        </div>
+        <div class="stat-pill">
+            <span class="sp-label">LOAD</span>
+            <span class="sp-val" id="stat-load">—</span>
+        </div>
+    </div>
+
+    <div class="topbar-right">
+        <select id="scenario-select" class="top-select">
+            <option value="">Random Scenario</option>
+        </select>
+        <button class="btn-ghost" id="btn-compare" title="Naive vs VERGIL split comparison">⚡ Compare</button>
+        <button class="btn-primary" id="btn-reset">New Episode</button>
+    </div>
+</header>
+
+<!-- ══════════════════ THREE-COLUMN THEATER ══════════════════ -->
+<main id="theater">
+
+    <!-- ── COLUMN 1: Conversation & Reasoning ─────────────── -->
+    <section id="conv-panel">
+
+        <div id="scenario-header">
+            <div class="sh-icon" id="sh-icon">💡</div>
+            <div class="sh-body">
+                <div class="sh-title" id="sh-title">Start an episode to begin</div>
+                <div class="sh-sub" id="sh-sub">Select a scenario and click New Episode</div>
+            </div>
+        </div>
+
+        <div id="message-feed">
+            <div class="feed-empty" id="feed-empty">
+                <div class="fe-icon">🧠</div>
+                <div>Agent reasoning will appear here as it makes decisions.</div>
+            </div>
+        </div>
+
+        <div id="conv-footer">
+            <div class="cf-label">Manual control</div>
+            <select id="node-picker" class="node-select">
+                <option value="">— select commitment —</option>
             </select>
-            <button class="btn-run-compare" id="btn-run-compare">▶ Run Comparison</button>
-            <button class="btn-close-compare" id="btn-close-compare">✕ Close</button>
+            <div id="manual-actions">
+                <button class="ma-btn accept" data-action="accept" title="Accept this commitment">✅ Accept</button>
+                <button class="ma-btn decline" data-action="decline" title="Decline">❌ Decline</button>
+                <button class="ma-btn counter" data-action="counter_propose" title="Propose new terms">🔄 Counter</button>
+                <button class="ma-btn wait" data-action="do_nothing" title="Do nothing this step">⏳ Wait</button>
+            </div>
+            <button class="autoplay-btn" id="btn-auto">▶ Auto-Play Agent</button>
+        </div>
+    </section>
+
+    <!-- ── COLUMN 2: CDG Graph (hero) ─────────────────────── -->
+    <section id="graph-panel">
+        <div id="graph-header-bar">
+            <span class="ghb-title">Commitment Dependency Graph</span>
+            <div class="ghb-indicators">
+                <span class="ghb-dot" id="ghb-pending">0 pending</span>
+                <span class="ghb-dot" id="ghb-active">0 active</span>
+                <span class="ghb-dot" id="ghb-failed">0 failed</span>
+            </div>
+        </div>
+
+        <div id="graph-area">
+            <svg id="graph-svg"></svg>
+            <div id="graph-empty">
+                <div class="ge-glyph">⟁</div>
+                <div class="ge-title">No commitments loaded</div>
+                <div class="ge-sub">Click <strong>New Episode</strong> to generate a CDG scenario</div>
+                <button class="ge-btn" id="ge-start-btn">New Episode →</button>
+            </div>
+        </div>
+
+        <div id="graph-legend">
+            <span class="gl-item"><span class="gl-dot pending"></span>Pending</span>
+            <span class="gl-item"><span class="gl-dot accepted"></span>Accepted</span>
+            <span class="gl-item"><span class="gl-dot completed"></span>Completed</span>
+            <span class="gl-item"><span class="gl-dot failed"></span>Failed</span>
+            <span class="gl-item"><span class="gl-line dep"></span>Depends on</span>
+            <span class="gl-item"><span class="gl-line conflict"></span>Conflicts</span>
+        </div>
+    </section>
+
+    <!-- ── COLUMN 3: Live Metrics ──────────────────────────── -->
+    <section id="metrics-panel">
+
+        <!-- Trust Network -->
+        <div class="mc" id="mc-trust">
+            <div class="mc-title">
+                <span>Trust Network</span>
+                <span class="mc-subtitle" id="trust-avg-badge">avg —</span>
+            </div>
+            <div id="trust-list"></div>
+        </div>
+
+        <!-- Schedule Capacity -->
+        <div class="mc" id="mc-capacity">
+            <div class="mc-title">Schedule Capacity</div>
+            <div id="capacity-display">
+                <div class="cap-numbers">
+                    <span id="cap-committed">—h</span>
+                    <span class="cap-slash">/</span>
+                    <span id="cap-available">—h</span>
+                    <span class="cap-label">committed of available (48h window)</span>
+                </div>
+                <div class="cap-bar-track">
+                    <div class="cap-bar-fill" id="cap-bar-fill"></div>
+                </div>
+                <div class="cap-legend">
+                    <span class="cap-ok">Safe &lt;70%</span>
+                    <span class="cap-warn">Warning 70–90%</span>
+                    <span class="cap-crit">Critical &gt;90%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Last Decision Score -->
+        <div class="mc" id="mc-reward">
+            <div class="mc-title">Last Decision Score</div>
+            <div id="reward-display">
+                <div class="rwd-empty">Take an action to see reward breakdown</div>
+            </div>
+        </div>
+
+        <!-- Node Detail -->
+        <div class="mc" id="mc-target">
+            <div class="mc-title">Selected Commitment</div>
+            <div id="target-detail">
+                <div class="td-empty">Click a graph node or select from the dropdown</div>
+            </div>
+        </div>
+
+        <!-- Event Log -->
+        <div class="mc mc-log" id="mc-log">
+            <div class="mc-title">Event Log</div>
+            <div id="log-list"></div>
+        </div>
+
+    </section>
+
+</main>
+
+<!-- ══════════════════ DECISION TIMELINE ══════════════════ -->
+<footer id="timeline-bar">
+    <div class="tl-label">Decisions</div>
+    <div id="timeline-track"></div>
+</footer>
+
+<!-- ══════════════════ COMPARE OVERLAY ══════════════════ -->
+<div id="compare-overlay" class="hidden">
+
+    <div class="cmp-topbar">
+        <div class="cmp-scenario-info" id="cmp-scenario-info">
+            <span class="cmp-scenario-icon" id="cmp-scenario-icon">⚡</span>
+            <div>
+                <div class="cmp-scenario-name" id="cmp-scenario-name">Select a scenario</div>
+                <div class="cmp-scenario-desc" id="cmp-scenario-desc">Loading…</div>
+            </div>
+        </div>
+        <div class="cmp-controls">
+            <select id="cmp-scenario-select" class="top-select">
+                <option value="scenario_04_deadline_crunch">Deadline Crunch (Stage 3)</option>
+                <option value="scenario_07_simultaneous_infeasibility">Simultaneous Infeasibility</option>
+                <option value="scenario_10_deadline_cascade">Deadline Cascade Chain</option>
+                <option value="scenario_11_impossible_math">Impossible Math</option>
+                <option value="scenario_12_force_majeure_recovery">Force Majeure Recovery</option>
+            </select>
+            <button class="btn-primary" id="btn-run-compare">▶ Run</button>
+            <button class="btn-ghost cmp-step-btn" id="btn-step-prev">‹</button>
+            <span class="cmp-step-label" id="cmp-step-label">Step — / —</span>
+            <button class="btn-ghost cmp-step-btn" id="btn-step-next">›</button>
+            <button class="btn-ghost cmp-auto-btn" id="btn-cmp-auto">Auto ▶</button>
+            <button class="btn-close-cmp" id="btn-close-compare">✕</button>
         </div>
     </div>
 
-    <div class="compare-loading hidden" id="compare-loading">
-        <div class="compare-spinner"></div>
-        <p>Running both agents on the same scenario…</p>
+    <div class="cmp-loading hidden" id="cmp-loading">
+        <div class="cmp-spinner"></div>
+        <p>Simulating both agents on the same scenario…</p>
     </div>
 
-    <div class="compare-body" id="compare-body">
-        <!-- Two CDG panels -->
-        <div class="compare-panels">
-            <div class="compare-panel" id="panel-naive">
-                <div class="panel-header naive-header">
-                    <span class="panel-title">❌ Naive Agent (Accept-All)</span>
-                    <div class="panel-stats">
-                        <span class="pstat" id="naive-reward">Reward: —</span>
-                        <span class="pstat" id="naive-sat">SAT: —</span>
-                        <span class="pstat" id="naive-failed">Failed: —</span>
-                    </div>
-                </div>
-                <svg id="compare-svg-naive" class="compare-svg"></svg>
-                <div class="panel-trust" id="naive-trust"></div>
-            </div>
+    <div class="cmp-body" id="cmp-body">
 
-            <div class="compare-divider">
-                <div class="compare-arrow">→</div>
-                <div class="compare-delta" id="compare-delta">
-                    <div class="delta-row"><span class="delta-label">Reward Δ</span><span class="delta-val positive" id="delta-reward">—</span></div>
-                    <div class="delta-row"><span class="delta-label">SAT Δ</span><span class="delta-val positive" id="delta-sat">—</span></div>
-                    <div class="delta-row"><span class="delta-label">Failures Avoided</span><span class="delta-val positive" id="delta-fail">—</span></div>
-                </div>
+        <!-- LEFT: Naive agent -->
+        <div class="cmp-side naive-side">
+            <div class="cmp-side-header naive-header">
+                <span class="csh-badge">❌ Naive Agent</span>
+                <span class="csh-desc">Accepts everything — cascade inevitable</span>
             </div>
-
-            <div class="compare-panel" id="panel-vergil">
-                <div class="panel-header vergil-header">
-                    <span class="panel-title">✅ VERGIL-Trained Agent</span>
-                    <div class="panel-stats">
-                        <span class="pstat" id="vergil-reward">Reward: —</span>
-                        <span class="pstat" id="vergil-sat">SAT: —</span>
-                        <span class="pstat" id="vergil-failed">Failed: —</span>
-                    </div>
-                </div>
-                <svg id="compare-svg-vergil" class="compare-svg"></svg>
-                <div class="panel-trust" id="vergil-trust"></div>
-            </div>
+            <svg id="cmp-svg-naive" class="cmp-svg"></svg>
+            <div class="cmp-side-stats" id="naive-stats"></div>
+            <div class="cmp-side-step" id="naive-step-display"></div>
         </div>
 
-        <!-- Step-by-step reasoning replay -->
-        <div class="compare-replay" id="compare-replay">
-            <div class="replay-header">
-                <span class="replay-title">🎬 Decision Replay</span>
-                <div class="replay-controls">
-                    <button id="replay-prev" class="replay-btn">‹ Prev</button>
-                    <span id="replay-step-label">Step —</span>
-                    <button id="replay-next" class="replay-btn">Next ›</button>
-                    <button id="replay-auto" class="replay-btn replay-auto-btn">▶ Auto</button>
-                </div>
+        <!-- CENTER: Delta column -->
+        <div class="cmp-center">
+            <div class="cmp-delta-title">IMPROVEMENT</div>
+            <div class="delta-row" id="d-reward">
+                <div class="dr-label">Reward Δ</div>
+                <div class="dr-val" id="dv-reward">—</div>
             </div>
-            <div class="replay-row">
-                <div class="replay-cell naive-cell">
-                    <div class="replay-action" id="replay-naive-action">—</div>
-                    <div class="replay-reason" id="replay-naive-reason">—</div>
-                    <div class="replay-reward" id="replay-naive-reward">—</div>
-                </div>
-                <div class="replay-cell vergil-cell">
-                    <div class="replay-action" id="replay-vergil-action">—</div>
-                    <div class="replay-reason" id="replay-vergil-reason">—</div>
-                    <div class="replay-reward" id="replay-vergil-reward">—</div>
-                </div>
+            <div class="delta-row" id="d-sat">
+                <div class="dr-label">Health Δ</div>
+                <div class="dr-val" id="dv-sat">—</div>
             </div>
+            <div class="delta-row" id="d-fail">
+                <div class="dr-label">Failures Avoided</div>
+                <div class="dr-val" id="dv-fail">—</div>
+            </div>
+            <div class="delta-row" id="d-trust">
+                <div class="dr-label">Trust Δ</div>
+                <div class="dr-val" id="dv-trust">—</div>
+            </div>
+            <div class="cmp-verdict" id="cmp-verdict"></div>
         </div>
+
+        <!-- RIGHT: VERGIL agent -->
+        <div class="cmp-side vergil-side">
+            <div class="cmp-side-header vergil-header">
+                <span class="csh-badge">✅ VERGIL Agent</span>
+                <span class="csh-desc">Reasons through CDG before deciding</span>
+            </div>
+            <svg id="cmp-svg-vergil" class="cmp-svg"></svg>
+            <div class="cmp-side-stats" id="vergil-stats"></div>
+            <div class="cmp-side-step cmp-think-block" id="vergil-step-display"></div>
+        </div>
+
     </div>
 </div>
 
