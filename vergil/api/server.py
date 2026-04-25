@@ -526,7 +526,8 @@ def _state_to_api(state, belief=None) -> Dict:
 
     d['graph'] = {'nodes': nodes, 'edges': edges}
 
-    # Add curriculum stage
+    # Add fields not included in to_dict()
+    d['available_hours_next_48h'] = getattr(state, 'available_hours_next_48h', None) or 16.0
     d['curriculum_stage'] = getattr(state, 'curriculum_stage', 1)
 
     # Add multi-dimensional trust from env

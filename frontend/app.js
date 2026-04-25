@@ -128,7 +128,9 @@ async function agentStep() {
     if (!currentState) return;
     try {
         const data = await fetchJSON(`${API}/api/agent-step`, { method: 'POST', body: {} });
-        handleStepResponse(data, data.action, data.reasoning);
+        // Action/reasoning live inside step_record
+        const sr = data.step_record || {};
+        handleStepResponse(data, sr.action || 'do_nothing', sr.agent_reasoning || null);
     } catch(e) {
         feedSystem(`Agent step failed: ${e.message}`, true);
         stopAutoplay();
@@ -142,7 +144,8 @@ function handleStepResponse(data, actionType, reasoning) {
     const reward = data.reward || 0;
     totalReward += reward;
 
-    const targetId = data.target_node_id || data.target;
+    const sr = data.step_record || {};
+    const targetId = sr.target || data.target_node_id || data.target;
     const nodes    = currentState.graph?.nodes || [];
     const node     = nodes.find(n => n.id === targetId);
 
@@ -455,12 +458,14 @@ function renderTargetDetail(state) {
 //  TRUST BARS
 // ═══════════════════════════════════════════════════════════
 function renderTrust(state) {
-    const entries = state.trust_entries || {};
+    // API returns trust_scores: {sid: float} and optionally multidim_trust: {sid: {reliability,competence,benevolence}}
+    const scores  = state.trust_scores  || state.trust_entries || {};
+    const mdTrust = state.multidim_trust || {};
     const list    = $('trust-list');
     list.innerHTML = '';
 
-    const scores = Object.values(entries).map(e => e.trust_score || 0);
-    const avg    = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+    const vals = Object.values(scores).map(v => typeof v === 'number' ? v : (v.trust_score || 0));
+    const avg  = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
     const avgBadge = $('trust-avg-badge');
     if (avg !== null) {
         avgBadge.textContent = `avg ${(avg*100).toFixed(0)}%`;
@@ -468,19 +473,19 @@ function renderTrust(state) {
         avgBadge.style.color = avg >= 0.6 ? 'var(--green)' : avg >= 0.4 ? 'var(--yellow)' : 'var(--red)';
     }
 
-    Object.entries(entries).forEach(([sid, te]) => {
-        const score = te.trust_score || 0;
+    Object.entries(scores).forEach(([sid, raw]) => {
+        const score = typeof raw === 'number' ? raw : (raw.trust_score || 0);
         const pct   = Math.round(score * 100);
         const cls   = score >= 0.65 ? 'high' : score >= 0.45 ? 'medium' : score >= 0.25 ? 'low' : 'critical';
 
-        const md = state.multidim_trust?.[sid];
+        const md = mdTrust[sid];
         let dimsHtml = '';
         if (md) {
             dimsHtml = `
                 <div class="te-dims">
-                    <span class="te-dim">R:<span>${(md.reliability*100).toFixed(0)}</span></span>
-                    <span class="te-dim">C:<span>${(md.competence*100).toFixed(0)}</span></span>
-                    <span class="te-dim">B:<span>${(md.benevolence*100).toFixed(0)}</span></span>
+                    <span class="te-dim">R:<span>${((md.reliability||0)*100).toFixed(0)}</span></span>
+                    <span class="te-dim">C:<span>${((md.competence||0)*100).toFixed(0)}</span></span>
+                    <span class="te-dim">B:<span>${((md.benevolence||0)*100).toFixed(0)}</span></span>
                 </div>`;
         }
 
@@ -498,7 +503,7 @@ function renderTrust(state) {
         `);
     });
 
-    if (!Object.keys(entries).length) {
+    if (!Object.keys(scores).length) {
         list.innerHTML = '<div style="color:var(--text-3);font-size:11px;padding:4px 0">No stakeholders yet</div>';
     }
 }
